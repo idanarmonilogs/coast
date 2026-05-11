@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0a1421">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="חופים">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<title>חופים — גלים, רוח, קרינה</title>
+<style>
+:root{
+  --bg-1:#0a1421; --bg-2:#10243d;
+  --card:rgba(255,255,255,.06);
+  --card-2:rgba(255,255,255,.075);
+  --border:rgba(255,255,255,.11);
+  --text:#f1f5fa; --text-2:#bccadb; --text-3:#7a8a9e;
+  --accent:#5dade2;
+  --shadow:0 8px 32px rgba(0,0,0,.35);
+  --uv-1:#76d275; --uv-2:#ffd54f; --uv-3:#ff9800; --uv-4:#f44336; --uv-5:#9c27b0;
+  --wv-1:#76d275; --wv-2:#5dade2; --wv-3:#ffd54f; --wv-4:#ff9800; --wv-5:#f44336;
+}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg-1)}
+body{
+  background:radial-gradient(ellipse 80% 50% at 50% -10%,#1c3a5c 0%,var(--bg-1) 60%) fixed;
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Hebrew","Segoe UI",system-ui,sans-serif;
+  font-size:16px;line-height:1.4;min-height:100vh;
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);
+  -webkit-font-smoothing:antialiased;
+  font-feature-settings:"tnum","ss01";
+}
+header{
+  padding:16px 18px 12px;display:flex;justify-content:space-between;align-items:center;
+  position:sticky;top:0;z-index:10;
+  background:rgba(10,20,33,.75);
+  backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:.5px solid var(--border);
+}
+h1{font-size:22px;font-weight:700;letter-spacing:-.5px;display:flex;align-items:center;gap:8px}
+.head-right{display:flex;align-items:center;gap:10px}
+.updated{font-size:11px;color:var(--text-3);text-align:left;line-height:1.3}
+.refresh{
+  background:rgba(93,173,226,.13);border:none;color:var(--accent);
+  width:38px;height:38px;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;cursor:pointer;transition:all .15s;
+}
+.refresh:active{background:rgba(93,173,226,.28);transform:scale(.92)}
+.refresh.spin svg{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spot-picker{
+  display:flex;gap:6px;padding:10px 14px 4px;overflow-x:auto;scrollbar-width:none;
+  position:sticky;top:65px;z-index:9;
+  background:rgba(10,20,33,.75);
+  backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+}
+.spot-picker::-webkit-scrollbar{display:none}
+.spot-btn{
+  flex:0 0 auto;padding:10px 18px;min-height:40px;
+  background:var(--card);border:.5px solid var(--border);
+  color:var(--text);border-radius:20px;
+  font-size:14px;font-weight:600;font-family:inherit;
+  cursor:pointer;transition:all .18s;white-space:nowrap;
+}
+.spot-btn:active{transform:scale(.96)}
+.spot-btn.active{background:var(--accent);color:#0a1421;border-color:var(--accent);font-weight:700}
+.tabs{
+  display:flex;gap:6px;padding:8px 14px 14px;
+  position:sticky;top:117px;z-index:9;
+  background:rgba(10,20,33,.75);
+  backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+}
+.tab{
+  flex:1;padding:11px 12px;min-height:42px;
+  background:var(--card);border:.5px solid var(--border);
+  color:var(--text);border-radius:12px;
+  font-size:14px;font-weight:600;font-family:inherit;
+  cursor:pointer;transition:all .18s;
+}
+.tab:active{transform:scale(.97)}
+.tab.active{background:var(--accent);color:#0a1421;border-color:var(--accent);font-weight:700}
+main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
+.card{
+  background:var(--card);border:.5px solid var(--border);
+  border-radius:22px;padding:18px;
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.spot-name{font-size:24px;font-weight:700;letter-spacing:-.5px}
+.cond{font-size:13px;color:var(--text-2);display:flex;align-items:center;gap:6px;margin-top:3px}
+.cond span:first-child{font-size:18px;line-height:1}
+.suntimes{font-size:12.5px;color:var(--text-2);display:flex;gap:10px;flex-direction:column;align-items:flex-end}
+.suntimes b{font-weight:600;color:var(--text)}
+
+/* === מטריקות === */
+.grid4{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.row:last-child,.grid4:last-child{margin-bottom:0}
+.metric{
+  background:var(--card-2);border:.5px solid var(--border);
+  border-radius:14px;padding:14px;
+  display:flex;flex-direction:column;gap:7px;
+  min-height:108px;position:relative;overflow:hidden;
+}
+.metric::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 85% 20%,var(--m-color,var(--accent)) 0%,transparent 65%);
+  opacity:.12;pointer-events:none;
+}
+.m-head{
+  display:flex;align-items:center;gap:6px;
+  color:var(--text-2);font-size:11.5px;font-weight:600;
+  letter-spacing:.4px;position:relative;
+}
+.m-head svg{width:15px;height:15px;flex-shrink:0;opacity:.85}
+.m-val{
+  font-size:32px;font-weight:700;letter-spacing:-.6px;line-height:1;
+  display:flex;align-items:baseline;gap:4px;position:relative;
+  color:var(--m-color,var(--text));
+}
+.m-unit{font-size:14px;font-weight:600;color:var(--text-2)}
+.m-sub{font-size:12px;color:var(--text-2);line-height:1.35;position:relative}
+.metric.uv{--m-color:var(--uv-color)}
+.metric.wave{--m-color:var(--wv-color,var(--accent))}
+.dir-arrow{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;border-radius:50%;
+  background:rgba(93,173,226,.15);color:var(--accent);
+  margin-inline-start:5px;font-size:12px;
+}
+
+/* === תחזית === */
+.forecast{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;margin-top:12px;padding-bottom:3px}
+.forecast::-webkit-scrollbar{display:none}
+.day{
+  flex:0 0 auto;
+  background:var(--card-2);border:.5px solid var(--border);
+  border-radius:13px;padding:10px 9px;min-width:76px;text-align:center;
+}
+.day-name{font-size:11px;color:var(--text-3);margin-bottom:6px;font-weight:600}
+.day-main{font-size:17px;font-weight:700;letter-spacing:-.3px;margin-bottom:3px;line-height:1.1}
+.day-sub{font-size:11px;color:var(--text-2);line-height:1.3}
+.day-uv{display:inline-block;margin-top:5px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:rgba(0,0,0,.3)}
+
+/* === שעות סגנון Google === */
+.hourly{
+  display:flex;gap:0;overflow-x:auto;scrollbar-width:none;
+  margin-top:14px;padding:0;background:var(--card-2);
+  border:.5px solid var(--border);border-radius:16px;
+}
+.hourly::-webkit-scrollbar{display:none}
+.hr{
+  flex:0 0 auto;min-width:78px;
+  padding:12px 8px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  border-left:.5px solid var(--border);
+  position:relative;
+}
+.hr:last-child{border-left:none}
+.hr.now{background:rgba(93,173,226,.08)}
+.hr-time{font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.3px}
+.hr.now .hr-time{color:var(--accent)}
+.hr-icon{font-size:20px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+.hr-temprow{display:flex;align-items:baseline;gap:5px;line-height:1}
+.hr-temp{font-size:18px;font-weight:700;letter-spacing:-.4px}
+.hr-uv{
+  font-size:10px;font-weight:700;color:var(--uv-color);
+  padding:1px 5px;border-radius:5px;background:rgba(0,0,0,.3);
+}
+.hr-wave{font-size:11px;color:var(--wv-color,var(--text-2));font-weight:600;line-height:1.1}
+.hr-wave.dim{color:var(--text-3);opacity:.5}
+.hr-pop{
+  font-size:10px;color:#7fc3ff;font-weight:600;line-height:1;
+  display:flex;align-items:center;gap:2px;min-height:11px;
+}
+.hr-pop.dim{opacity:0}
+.hr-wind{font-size:10px;color:var(--text-3);font-weight:500;line-height:1.1}
+
+.loading,.error{text-align:center;padding:50px 20px;color:var(--text-3);font-size:14px}
+.error{color:#ff9180}
+.no-data{font-size:13px;color:var(--text-3);font-style:italic}
+.footer{text-align:center;padding:24px 20px;font-size:10.5px;color:var(--text-3);line-height:1.7}
+.footer a{color:var(--accent);text-decoration:none}
+
+@media(min-width:680px){
+  main{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px 20px 80px}
+  .card{margin:0}
+}
+
+.uv-l{--uv-color:var(--uv-1)}
+.uv-m{--uv-color:var(--uv-2)}
+.uv-h{--uv-color:var(--uv-3)}
+.uv-v{--uv-color:var(--uv-4)}
+.uv-x{--uv-color:var(--uv-5)}
+.wv-l{--wv-color:var(--wv-1)}
+.wv-m{--wv-color:var(--wv-2)}
+.wv-h{--wv-color:var(--wv-3)}
+.wv-x{--wv-color:var(--wv-4)}
+.wv-xx{--wv-color:var(--wv-5)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>🌊</span> חופים</h1>
+  <div class="head-right">
+    <div class="updated" id="updated">טוען…</div>
+    <button class="refresh" id="refresh" aria-label="רענן">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3.13-6.84L21 8"/><path d="M21 3v5h-5"/></svg>
+    </button>
+  </div>
+</header>
+
+<nav class="spot-picker" id="spotPicker"></nav>
+
+<nav class="tabs" id="tabs" role="tablist" aria-label="טווח תחזית">
+  <button class="tab" data-view="now" role="tab" aria-selected="false">עכשיו</button>
+  <button class="tab active" data-view="today" role="tab" aria-selected="true">היום</button>
+  <button class="tab" data-view="week" role="tab" aria-selected="false">7 ימים</button>
+</nav>
+
+<main id="main"><div class="loading">טוען נתונים…</div></main>
+
+<div class="footer">
+  נתונים: <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a> · גלים `WAM/MeteoFrance` · מזג אוויר `ECMWF`<br>
+  עדכון אוטומטי כל 30 דקות · `pull-to-refresh` נתמך
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-wave" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c2-3 4-3 6 0s4 3 6 0 4-3 6 0 4 3 2 0"/><path d="M2 17c2-3 4-3 6 0s4 3 6 0 4-3 6 0 4 3 2 0" opacity=".55"/></symbol>
+  <symbol id="i-wind" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2"/><path d="M17.73 2.27A2.5 2.5 0 1 1 19.5 6.5H2"/><path d="M9.59 19.41A2 2 0 1 0 11 16H2"/></symbol>
+  <symbol id="i-temp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></symbol>
+  <symbol id="i-water" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.22 4.22l1.77 1.77M18.01 18.01l1.77 1.77M2 12h2.5M19.5 12H22M4.22 19.78l1.77-1.77M18.01 5.99l1.77-1.77"/></symbol>
+</svg>
+
+<script>
+const SPOTS=[
+  {id:'nahsholim',name:'נחשולים',lat:32.6178,lon:34.9176,sea:'med'},
+  {id:'dor',name:'דור הבונים',lat:32.6310,lon:34.9134,sea:'med'},
+  {id:'telaviv',name:'תל אביב',lat:32.0853,lon:34.7656,sea:'med'},
+  {id:'eilat',name:'אילת',lat:29.5377,lon:34.9519,sea:'red'}
+];
+const CACHE_KEY='beachData_v6',CACHE_TTL=30*60*1000;
+const SPOT_KEY='beachSelectedSpot';
+let selectedSpot=localStorage.getItem(SPOT_KEY)||'nahsholim';
+const DIRS=['צ','צ-מז','מז','ד-מז','ד','ד-מע','מע','צ-מע'];
+const DAY_NAMES=['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
+
+const dirText=d=>DIRS[Math.round(d/45)%8];
+const dirArrow=d=>`<span class="dir-arrow" style="transform:rotate(${(d+180)%360}deg)">↑</span>`;
+const fmtT=iso=>iso.slice(11,16);
+const uvCls=v=>v<3?'uv-l':v<6?'uv-m':v<8?'uv-h':v<11?'uv-v':'uv-x';
+const uvTier=v=>v<3?'נמוך':v<6?'בינוני':v<8?'גבוה':v<11?'גבוה מאוד':'קיצוני';
+const uvIcon=v=>v<3?'🟢':v<6?'🟡':v<8?'🟠':v<11?'🔴':'🟣';
+const uvAdvice=v=>v<3?{spf:'ללא הגנה',gear:''}:v<6?{spf:'SPF 30',gear:'כובע מומלץ'}:v<8?{spf:'SPF 50',gear:'כובע + משקפיים'}:v<11?{spf:'SPF 50+',gear:'כובע, חולצה, צל ב-11-15'}:{spf:'הימנע מחשיפה',gear:'הגנה מלאה'};
+const burnMin=v=>v>0?Math.round(200/v):null; // skin type II-III
+const waveCls=h=>h<.3?'wv-l':h<.7?'wv-m':h<1.2?'wv-h':h<2?'wv-x':'wv-xx';
+const waveTier=h=>h<.3?'שטוח':h<.7?'קטן':h<1.2?'בינוני':h<2?'גדול':'ענק';
+const windTier=s=>s<10?'חלש':s<20?'בינוני':s<30?'חזק':s<40?'חזק מאוד':'סוער';
+function wmoIcon(c,isDay=true){
+  if(c===0)return isDay?'☀️':'🌙';
+  if(c<=2)return isDay?'🌤️':'🌙';
+  if(c===3)return '☁️';
+  if(c===45||c===48)return '🌫️';
+  if(c>=51&&c<=57)return '🌦️';
+  if(c>=61&&c<=67)return '🌧️';
+  if(c>=71&&c<=77)return '❄️';
+  if(c>=80&&c<=82)return '🌧️';
+  if(c>=85&&c<=86)return '🌨️';
+  if(c>=95)return '⛈️';
+  return '🌤️';
+}
+const isDayHour=h=>h>=6&&h<19;
+
+function nowIdx(times){
+  const n=new Date();
+  const target=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}T${String(n.getHours()).padStart(2,'0')}:00`;
+  const i=times.findIndex(t=>t>=target);
+  return i<0?0:i;
+}
+
+function uvInsights(uvArr,times,idx){
+  const today=times[idx].slice(0,10);
+  let pi=idx,si=-1;
+  for(let i=idx;i<times.length&&times[i].slice(0,10)===today;i++){
+    if(uvArr[i]>uvArr[pi])pi=i;
+  }
+  for(let i=pi;i<times.length&&times[i].slice(0,10)===today;i++){
+    if(uvArr[i]<3){si=i;break;}
+  }
+  return{peakTime:fmtT(times[pi]),peakVal:uvArr[pi],safeTime:si>0?fmtT(times[si]):null};
+}
+
+async function fetchSpot(spot){
+  const wUrl=`https://api.open-meteo.com/v1/forecast?latitude=${spot.lat}&longitude=${spot.lon}&hourly=temperature_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,uv_index,weather_code,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,uv_index_max,wind_speed_10m_max,weather_code,sunrise,sunset&timezone=Asia/Jerusalem&forecast_days=7&wind_speed_unit=kmh`;
+  const reqs=[fetch(wUrl).then(r=>r.json())];
+  if(spot.sea==='med'){
+    const mUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${spot.lat}&longitude=${spot.lon}&hourly=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_period,sea_surface_temperature&daily=wave_height_max,wave_direction_dominant,wave_period_max&timezone=Asia/Jerusalem&forecast_days=7`;
+    reqs.push(fetch(mUrl).then(r=>r.json()));
+  }
+  const[weather,marine]=await Promise.all(reqs);
+  return{spot,weather,marine:marine||null};
+}
+
+async function loadAll(force=false){
+  const cached=localStorage.getItem(CACHE_KEY);
+  if(!force&&cached){
+    try{const{data,ts}=JSON.parse(cached);if(Date.now()-ts<CACHE_TTL){render(data,ts);return}}catch{}
+  }
+  try{
+    const data=await Promise.all(SPOTS.map(fetchSpot));
+    const ts=Date.now();
+    localStorage.setItem(CACHE_KEY,JSON.stringify({data,ts}));
+    render(data,ts);
+  }catch(e){
+    if(cached){try{const{data,ts}=JSON.parse(cached);render(data,ts,'⚠ מטמון');return}catch{}}
+    document.getElementById('main').innerHTML=`<div class="error">שגיאה: ${e.message}</div>`;
+  }
+}
+
+function waveMetric(mh,i){
+  if(mh&&mh.wave_height[i]!=null){
+    const wave=mh.wave_height[i],per=mh.wave_period[i],wdrM=mh.wave_direction[i];
+    return `<div class="metric wave ${waveCls(wave)}">
+      <div class="m-head"><svg><use href="#i-wave"/></svg>גלים ${dirArrow(wdrM)} ${dirText(wdrM)}</div>
+      <div class="m-val">${wave.toFixed(1)}<span class="m-unit">מ׳</span></div>
+      <div class="m-sub">${waveTier(wave)} · ${per?per.toFixed(0):'?'}שנ׳</div>
+    </div>`;
+  }
+  return `<div class="metric"><div class="m-head"><svg><use href="#i-wave"/></svg>גלים</div><div class="m-val">—</div><div class="m-sub">מפרץ — זניחים</div></div>`;
+}
+
+function uvMetric(uv,insights){
+  const cls=uvCls(uv);
+  const bm=burnMin(uv);
+  const sub=insights&&insights.peakVal>uv+0.4
+    ?`${uvTier(uv)} · שיא ${insights.peakTime} (${insights.peakVal.toFixed(1)})`
+    :bm&&uv>=3?`${uvTier(uv)} · כוויה ב-${bm} דק׳`
+    :uvTier(uv);
+  return `<div class="metric uv ${cls}">
+    <div class="m-head"><svg><use href="#i-sun"/></svg>קרינה (UV)</div>
+    <div class="m-val">${uv.toFixed(1)}<span class="m-unit">${uvIcon(uv)}</span></div>
+    <div class="m-sub">${sub}</div>
+  </div>`;
+}
+
+function tempMetric(t,sst){
+  return `<div class="metric">
+    <div class="m-head"><svg><use href="#i-temp"/></svg>טמפ׳</div>
+    <div class="m-val">${t}<span class="m-unit">°</span></div>
+    <div class="m-sub">${sst!=null?`מים ${sst.toFixed(1)}°`:'אוויר'}</div>
+  </div>`;
+}
+
+function windMetric(wind,gust,wdir){
+  return `<div class="metric">
+    <div class="m-head"><svg><use href="#i-wind"/></svg>רוח ${dirArrow(wdir)} ${dirText(wdir)}</div>
+    <div class="m-val">${wind}<span class="m-unit">קמ"ש</span></div>
+    <div class="m-sub">${windTier(wind)} · פורצים ${gust}</div>
+  </div>`;
+}
+
+function wmoText(c){
+  if(c===0)return'שמיים בהירים';
+  if(c<=2)return'מעונן חלקית';
+  if(c===3)return'מעונן';
+  if(c===45||c===48)return'ערפל';
+  if(c>=51&&c<=57)return'טפטוף';
+  if(c>=61&&c<=67)return'גשם';
+  if(c>=71&&c<=77)return'שלג';
+  if(c>=80&&c<=82)return'ממטרים';
+  if(c>=95)return'סופת רעמים';
+  return'';
+}
+
+function renderNow(d){
+  const{spot,weather,marine}=d;
+  const wh=weather.hourly,wd=weather.daily;
+  const i=nowIdx(wh.time);
+  const mh=marine?.hourly;
+  const uv=wh.uv_index[i];
+  const insights=uvInsights(wh.uv_index,wh.time,i);
+  const temp=Math.round(wh.temperature_2m[i]);
+  const wind=Math.round(wh.wind_speed_10m[i]);
+  const gust=Math.round(wh.wind_gusts_10m[i]);
+  const wdir=wh.wind_direction_10m[i];
+  const sst=mh?.sea_surface_temperature?.[i];
+  const code=wh.weather_code?.[i]??1;
+  const hr=parseInt(wh.time[i].slice(11,13),10);
+  const sunrise=fmtT(wd.sunrise[0]),sunset=fmtT(wd.sunset[0]);
+
+  return `<div class="card">
+    <div class="card-head">
+      <div>
+        <div class="spot-name">${spot.name}</div>
+        <div class="cond"><span>${wmoIcon(code,isDayHour(hr))}</span><span>${wmoText(code)}</span></div>
+      </div>
+      <div class="suntimes"><span>🌅 <b>${sunrise}</b></span><span>🌇 <b>${sunset}</b></span></div>
+    </div>
+    <div class="grid4">
+      ${waveMetric(mh,i)}
+      ${uvMetric(uv,insights)}
+      ${tempMetric(temp,sst)}
+      ${windMetric(wind,gust,wdir)}
+    </div>
+  </div>`;
+}
+
+function renderToday(d){
+  const{spot,weather,marine}=d;
+  const wh=weather.hourly,wd=weather.daily,md=marine?.daily;
+  const i=nowIdx(wh.time);
+  const tMax=Math.round(wd.temperature_2m_max[0]),tMin=Math.round(wd.temperature_2m_min[0]);
+  const uvMax=wd.uv_index_max[0],windMax=Math.round(wd.wind_speed_10m_max[0]);
+  const insights=uvInsights(wh.uv_index,wh.time,i);
+  const sunrise=fmtT(wd.sunrise[0]),sunset=fmtT(wd.sunset[0]);
+
+  let hours='';
+  const nowH=parseInt(wh.time[i].slice(11,13),10);
+  const mh=marine?.hourly;
+  for(let h=0;h<24;h++){
+    const idx=i-(i%24)+h;if(idx<0||idx>=wh.time.length)continue;
+    const hh=parseInt(wh.time[idx].slice(11,13),10);
+    const code=wh.weather_code?.[idx]??1;
+    const pop=wh.precipitation_probability?.[idx]??0;
+    const uvH=wh.uv_index[idx]??0;
+    const wave=mh?.wave_height?.[idx];
+    const isNow=hh===nowH;
+    hours+=`<div class="hr${isNow?' now':''}">
+      <div class="hr-time">${isNow?'עכשיו':String(hh).padStart(2,'0')}</div>
+      <div class="hr-icon">${wmoIcon(code,isDayHour(hh))}</div>
+      <div class="hr-temprow">
+        <span class="hr-temp">${Math.round(wh.temperature_2m[idx])}°</span>
+        ${uvH>=1?`<span class="hr-uv ${uvCls(uvH)}">UV ${uvH.toFixed(0)}</span>`:''}
+      </div>
+      <div class="hr-wave${wave==null?' dim':' '+waveCls(wave)}">${wave!=null?`🌊 ${wave.toFixed(1)}מ׳`:'—'}</div>
+      <div class="hr-wind">💨 ${Math.round(wh.wind_speed_10m[idx])} קמ"ש</div>
+      <div class="hr-pop${pop<10?' dim':''}">💧${pop}%</div>
+    </div>`;
+  }
+
+  let waveBox;
+  if(md&&md.wave_height_max[0]!=null){
+    const wm=md.wave_height_max[0],pm=md.wave_period_max[0],dm=md.wave_direction_dominant[0];
+    waveBox=`<div class="metric wave ${waveCls(wm)}">
+      <div class="m-head"><svg><use href="#i-wave"/></svg>גלים מקס׳ ${dirArrow(dm)} ${dirText(dm)}</div>
+      <div class="m-val">${wm.toFixed(1)}<span class="m-unit">מ׳</span></div>
+      <div class="m-sub">${waveTier(wm)} · עד ${pm?pm.toFixed(0):'?'}שנ׳</div>
+    </div>`;
+  }else{
+    waveBox=`<div class="metric"><div class="m-head"><svg><use href="#i-wave"/></svg>גלים</div><div class="m-val">—</div><div class="m-sub">לא זמין</div></div>`;
+  }
+
+  const uvBox=`<div class="metric uv ${uvCls(uvMax)}">
+    <div class="m-head"><svg><use href="#i-sun"/></svg>קרינה מקס׳</div>
+    <div class="m-val">${uvMax.toFixed(1)}<span class="m-unit">${uvIcon(uvMax)}</span></div>
+    <div class="m-sub">${uvTier(uvMax)}${insights?.peakTime?` · שיא ${insights.peakTime}`:''}</div>
+  </div>`;
+
+  const tempBox=`<div class="metric">
+    <div class="m-head"><svg><use href="#i-temp"/></svg>טמפ׳</div>
+    <div class="m-val">${tMax}<span class="m-unit">° / ${tMin}°</span></div>
+    <div class="m-sub">מקס׳ / מין׳</div>
+  </div>`;
+
+  const windBox=`<div class="metric">
+    <div class="m-head"><svg><use href="#i-wind"/></svg>רוח מקס׳</div>
+    <div class="m-val">${windMax}<span class="m-unit">קמ"ש</span></div>
+    <div class="m-sub">${windTier(windMax)}</div>
+  </div>`;
+
+  return `<div class="card">
+    <div class="card-head">
+      <div class="spot-name">${spot.name}</div>
+      <div class="suntimes"><span>🌅 <b>${sunrise}</b></span><span>🌇 <b>${sunset}</b></span></div>
+    </div>
+    <div class="grid4">
+      ${waveBox}
+      ${uvBox}
+      ${tempBox}
+      ${windBox}
+    </div>
+    <div class="hourly">${hours}</div>
+  </div>`;
+}
+
+function renderWeek(d){
+  const{spot,weather,marine}=d;
+  const wd=weather.daily,md=marine?.daily;
+  let days='';
+  for(let i=0;i<7;i++){
+    const date=new Date(wd.time[i]);
+    const dn=i===0?'היום':i===1?'מחר':DAY_NAMES[date.getDay()];
+    const tMax=Math.round(wd.temperature_2m_max[i]),tMin=Math.round(wd.temperature_2m_min[i]);
+    const uvMax=wd.uv_index_max[i];
+    const wMax=md?md.wave_height_max[i]:null;
+    const mainVal=wMax!=null
+      ?`<span class="${waveCls(wMax)}" style="color:var(--wv-color)">${wMax.toFixed(1)}מ׳</span>`
+      :`${tMax}°`;
+    days+=`<div class="day">
+      <div class="day-name">${dn}</div>
+      <div class="day-main">${mainVal}</div>
+      <div class="day-sub">${tMax}° / ${tMin}°</div>
+      <div class="day-uv ${uvCls(uvMax)}" style="color:var(--uv-color)">UV ${uvMax.toFixed(0)}</div>
+    </div>`;
+  }
+  return `<div class="card">
+    <div class="card-head">
+      <div class="spot-name">${spot.name}</div>
+      <div class="suntimes">${md?'גובה גלים מקס׳ ליום':'טמפ׳ ליום'}</div>
+    </div>
+    <div class="forecast" style="margin-top:0">${days}</div>
+  </div>`;
+}
+
+function render(data,ts,note){
+  const view=document.querySelector('.tab.active').dataset.view;
+  const fn=view==='now'?renderNow:view==='today'?renderToday:renderWeek;
+  const d=data.find(x=>x.spot.id===selectedSpot)||data[0];
+  document.getElementById('main').innerHTML=fn(d);
+  const dt=new Date(ts);
+  const tStr=String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');
+  document.getElementById('updated').innerHTML=(note?note+'<br>':'')+'עודכן '+tStr;
+  const nowHr=document.querySelector('.hr.now');
+  if(nowHr)nowHr.scrollIntoView({inline:'center',block:'nearest',behavior:'instant'});
+}
+
+function buildSpotPicker(){
+  const el=document.getElementById('spotPicker');
+  el.setAttribute('role','tablist');
+  el.setAttribute('aria-label','בחירת חוף');
+  el.innerHTML=SPOTS.map(s=>{
+    const act=s.id===selectedSpot;
+    return `<button class="spot-btn${act?' active':''}" data-spot="${s.id}" role="tab" aria-selected="${act}" aria-label="חוף ${s.name}">${s.name}</button>`;
+  }).join('');
+}
+
+function renderFromCache(){
+  const cached=localStorage.getItem(CACHE_KEY);
+  if(cached){try{const{data,ts}=JSON.parse(cached);render(data,ts)}catch{}}
+}
+
+document.getElementById('spotPicker').addEventListener('click',e=>{
+  const btn=e.target.closest('.spot-btn');if(!btn)return;
+  selectedSpot=btn.dataset.spot;
+  localStorage.setItem(SPOT_KEY,selectedSpot);
+  document.querySelectorAll('.spot-btn').forEach(b=>{
+    const a=b.dataset.spot===selectedSpot;
+    b.classList.toggle('active',a);b.setAttribute('aria-selected',a);
+  });
+  renderFromCache();
+});
+
+document.getElementById('tabs').addEventListener('click',e=>{
+  if(!e.target.classList.contains('tab'))return;
+  document.querySelectorAll('.tab').forEach(t=>{
+    const a=t===e.target;
+    t.classList.toggle('active',a);t.setAttribute('aria-selected',a);
+  });
+  renderFromCache();
+});
+
+document.getElementById('refresh').addEventListener('click',e=>{
+  const btn=e.currentTarget;btn.classList.add('spin');
+  loadAll(true).finally(()=>setTimeout(()=>btn.classList.remove('spin'),400));
+});
+
+let touchStart=0,pulling=false;
+document.addEventListener('touchstart',e=>{if(window.scrollY===0)touchStart=e.touches[0].clientY},{passive:true});
+document.addEventListener('touchmove',e=>{
+  if(window.scrollY===0&&e.touches[0].clientY-touchStart>80&&!pulling){pulling=true;document.getElementById('refresh').click()}
+},{passive:true});
+document.addEventListener('touchend',()=>{pulling=false});
+
+buildSpotPicker();
+loadAll();
+setInterval(()=>loadAll(),30*60*1000);
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "חופים — גלים, רוח, UV",
+  "short_name": "חופים",
+  "description": "תחזית גלים, רוח, מזג אוויר ו-UV עבור נחשולים, דור הבונים, תל אביב ואילת",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a1929",
+  "theme_color": "#0a3d62",
+  "icons": [
+    {"src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+  ]
+}
