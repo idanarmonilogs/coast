@@ -387,7 +387,7 @@ main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
   <button class="mode-btn" data-mode="swim" aria-pressed="true">🏊 שחייה</button>
   <button class="mode-btn" data-mode="sup" aria-pressed="false">🛶 סאפ</button>
   <button class="mode-btn" data-mode="surf" aria-pressed="false">🏄 גלישה</button>
-  <button class="mode-btn" data-mode="kite" aria-pressed="false">🪁 קייט</button>
+  <button class="mode-btn" data-mode="kayak" aria-pressed="false">🚣 קיאק</button>
 </div>
 
 <nav class="tabs" id="tabs" role="tablist" aria-label="טווח תחזית">
@@ -470,7 +470,8 @@ const CACHE_KEY='beachData_v7',CACHE_TTL=30*60*1000;
 const SPOT_KEY='beachSelectedSpot';
 const MODE_KEY='beachMode';
 let selectedSpot=localStorage.getItem(SPOT_KEY)||'nahsholim';
-let mode=localStorage.getItem(MODE_KEY)||'swim'; // 'swim'/'sup'/'surf'
+let mode=localStorage.getItem(MODE_KEY)||'swim'; // 'swim'/'sup'/'surf'/'kayak'
+if(!['swim','sup','surf','kayak'].includes(mode))mode='swim';
 let selectedDay=0; // index 0..6 (היום=0)
 
 // וודא שהספוט הנבחר קיים ברשימה הנוכחית
@@ -543,52 +544,46 @@ function supScore(waveH,windSpd,sst){
   return Math.round(total*10)/10;
 }
 
-// ציון קייט 0-10 — תלוי קריטית ברוח (טווח + יציבות + כיוון)
-// 1km/h ≈ 0.54 knots. טווח קייט: ~22-55 km/h (12-30 knots)
-function kiteScore(windSpd,gust,windDir,facing){
-  // טווח עוצמה: <22 חלש, 22-30 בסיסי, 30-45 אופטימלי, 45-55 חזק, >55 מסוכן
-  const sScore=windSpd<15?.05:windSpd<22?.35:windSpd<30?.75:windSpd<45?1:windSpd<55?.7:.25;
-  // יציבות — פער בין פורצים לעוצמה
-  const gustDiff=gust&&windSpd?Math.max(0,gust-windSpd):0;
-  const stab=gustDiff<6?1:gustDiff<12?.75:gustDiff<18?.45:.2;
-  // כיוון: side-shore=הכי טוב, on-shore=בטוח, off-shore=מסוכן (סטייה ממול לים)
+// ציון קיאק 0-10 — סובלני יותר מ-SUP לרוח אבל רגיש להיסחפות
+function kayakScore(waveH,windSpd,windDir,facing,sst){
+  // גלים: <0.4 מעולה, <0.7 בסדר, <1 קשה, <1.5 לסירת ים מתקדם, >1.5 מסוכן
+  const hScore=waveH==null?.85:waveH<.3?1:waveH<.6?.9:waveH<1?.65:waveH<1.5?.35:.1;
+  // רוח: סובלני יותר מ-SUP (יושב נמוך, פחות חשיפה). <15 מעולה, 15-25 בסדר, >30 מסוכן
+  const wScore=windSpd<10?1:windSpd<18?.9:windSpd<25?.6:windSpd<32?.3:.1;
+  // כיוון רוח: offshore מסוכן (היסחף לים). cross/onshore בטוח
   const off=(facing+180)%360;
   let diff=Math.abs(windDir-off);if(diff>180)diff=360-diff;
-  // diff קרוב ל-180 = onshore (טוב), 90 = side-shore (מצוין), 0 = offshore (מסוכן)
-  let dScore;
-  if(diff<=30)dScore=0;        // offshore — מסוכן!
-  else if(diff<=60)dScore=.35; // cross-off
-  else if(diff<=120)dScore=1;  // side-shore — הכי טוב
-  else dScore=.7;              // onshore — בטוח
-  const total=(sScore*.5+dScore*.35+stab*.15)*10;
+  const dScore=diff<=30?.2:diff<=60?.55:diff<=120?1:.85;
+  // מים: רסס בקור = לא נעים אבל לא קריטי כמו שחייה
+  const tScore=sst==null?.85:sst>=20?1:sst>=16?.85:sst>=13?.55:.3;
+  const total=(hScore*.35+wScore*.35+dScore*.2+tScore*.1)*10;
   return Math.round(total*10)/10;
 }
 
 function score(mode,waveH,wavePer,windSpd,windDir,facing,sst,gust){
   if(mode==='surf')return surfScore(waveH,wavePer,windSpd,windDir,facing);
   if(mode==='sup')return supScore(waveH,windSpd,sst);
-  if(mode==='kite')return kiteScore(windSpd,gust,windDir,facing);
+  if(mode==='kayak')return kayakScore(waveH,windSpd,windDir,facing,sst);
   return swimScore(waveH,windSpd,sst);
 }
 
-// גודל קייט מומלץ לפי עוצמת רוח ומשקל ממוצע (~75 ק"ג)
-function kiteSize(windSpd){
-  if(windSpd<18)return null;
-  if(windSpd<25)return'14-17מ²';
-  if(windSpd<32)return'11-13מ²';
-  if(windSpd<42)return'8-10מ²';
-  if(windSpd<52)return'6-8מ²';
-  return'5מ² ומטה';
+// המלצת מרחק/משך טיול קיאק לפי תנאי רוח
+function kayakTrip(windSpd){
+  if(windSpd<10)return'טיול ארוך · עד 10 ק"מ';
+  if(windSpd<18)return'טיול בינוני · 5-8 ק"מ';
+  if(windSpd<25)return'טיול קצר · עד 4 ק"מ קרוב לחוף';
+  if(windSpd<32)return'מנוסים בלבד · קרוב מאוד לחוף';
+  return'לא מומלץ — הישאר ביבשה';
 }
 
-// סוג רוח לקייט (offshore = מסוכן!)
-function kiteWindType(windDir,facing){
+// סוג רוח לקיאק (offshore = מסוכן בגלל היסחפות)
+function kayakWindType(windDir,facing){
   const off=(facing+180)%360;
   let diff=Math.abs(windDir-off);if(diff>180)diff=360-diff;
-  if(diff<=30)return{label:'יבשתית - מסוכן!',color:'#f87171',icon:'⚠️'};
-  if(diff<=60)return{label:'חצי יבשתית',color:'#fbbf24',icon:'◑'};
-  if(diff<=120)return{label:'צידית - אידיאלי',color:'#4ade80',icon:'✨'};
-  return{label:'ימית - בטוחה',color:'#a3e635',icon:'◐'};
+  if(diff<=30)return{label:'יבשתית — סכנת היסחפות',color:'#f87171',icon:'⚠️',safe:false};
+  if(diff<=60)return{label:'חצי יבשתית — היזהר',color:'#fbbf24',icon:'◑',safe:false};
+  if(diff<=120)return{label:'צידית — מומלצת',color:'#4ade80',icon:'✨',safe:true};
+  return{label:'ימית — בטוחה',color:'#a3e635',icon:'◐',safe:true};
 }
 const scoreCls=s=>s<2?'sc-1':s<4?'sc-2':s<6?'sc-3':s<8?'sc-4':'sc-5';
 const scoreLabel=s=>s<2?'גרוע':s<4?'חלש':s<6?'בסדר':s<8?'טוב':'מצוין';
@@ -612,13 +607,13 @@ function wetsuit(t,mode){
     if(t>=15)return{txt:'חליפה 3/2',icon:'🤿'};
     return{txt:'חליפה 4/3',icon:'🥶'};
   }
-  if(mode==='kite'){
-    // קייט בלבוש שמתאים לקור הרוח. אדפטיבי לקייטרים
-    if(t>=24)return{txt:'בגד ים + ראש',icon:'🩳'};
-    if(t>=21)return{txt:'ליקרה + שורטי',icon:'👕'};
-    if(t>=18)return{txt:'חליפה 3/2 + רתמה',icon:'🤿'};
-    if(t>=15)return{txt:'חליפה 4/3 + כובע',icon:'🧢'};
-    return{txt:'חליפה 5/4 + כפפות',icon:'🥶'};
+  if(mode==='kayak'){
+    // קיאק — חשיפה לרסס, פחות שקוע. דומה לסאפ אבל מעט סובלני יותר
+    if(t>=23)return{txt:'בגד ים + ליקרה',icon:'🩳'};
+    if(t>=20)return{txt:'ליקרה + מכנס קצר',icon:'👕'};
+    if(t>=17)return{txt:'שורטי 2מ"מ',icon:'🥽'};
+    if(t>=14)return{txt:'חליפה 3/2',icon:'🤿'};
+    return{txt:'חליפה 4/3 + מעיל יבש',icon:'🥶'};
   }
   // surf
   if(t>=24)return{txt:'בגד ים',icon:'🩳'};
@@ -750,29 +745,43 @@ function modeInsights(mode,d,dayIdx){
     }
   }
 
-  if(mode==='kite'){
-    // חלון רוח בטווח קייט
-    const range=findRange(wh,mh,start,end,(i)=>{
-      const w=wh.wind_speed_10m[i];return w>=22&&w<=55;
+  if(mode==='kayak'){
+    // חלון שייט נוח (רוח<20, גלים<0.7)
+    const calm=findRange(wh,mh,start,end,(i)=>{
+      const w=mh?.wave_height?.[i];
+      return wh.wind_speed_10m[i]<20&&(w==null||w<.7);
     });
-    if(range)items.push({i:'🪁',k:'חלון רוח קייט',v:`${pad2(range.from)}-${pad2(range.to)} (${range.hours}ש׳)`,lv:'good'});
-    else items.push({i:'⚠️',k:'רוח',v:'מחוץ לטווח קייט היום',lv:'warn'});
+    if(calm)items.push({i:'🚣',k:'חלון שייט נוח',v:`${pad2(calm.from)}-${pad2(calm.to)} (${calm.hours}ש׳)`,lv:'good'});
+    else items.push({i:'⚠️',k:'תנאי שייט',v:'תנאים קשים כל היום',lv:'warn'});
 
-    // עוצמת רוח מקס׳ + גודל קייט
+    // רוח מקס׳ + המלצת מרחק
     const wMax=Math.round(wd.wind_speed_10m_max[dayIdx]);
-    const ksize=kiteSize(wMax);
-    items.push({i:'💨',k:'רוח מקס׳',v:`${wMax} קמ"ש${ksize?` · ${ksize}`:''}`,lv:wMax>=22&&wMax<=50?'good':wMax<22?'warn':'bad'});
+    const trip=kayakTrip(wMax);
+    items.push({i:'💨',k:'רוח מקס׳',v:`${wMax} קמ"ש · ${windTier(wMax)}`,lv:wMax<15?'good':wMax<22?'ok':wMax<30?'warn':'bad'});
+    items.push({i:'📏',k:'המלצת מרחק',v:trip,lv:wMax<18?'good':wMax<25?'ok':wMax<32?'warn':'bad'});
 
-    // אזהרת offshore (מסוכן!)
+    // בטיחות כיוון רוח (offshore = סכנת היסחפות)
     const i=dayIdx===0?nowIdx(wh.time):start;
-    const kwt=kiteWindType(wh.wind_direction_10m[i],facing);
-    const lv=kwt.label.includes('מסוכן')?'bad':kwt.label.includes('אידיאלי')||kwt.label.includes('בטוחה')?'good':'warn';
-    items.push({i:kwt.icon,k:'כיוון רוח',v:kwt.label,lv});
+    const kwt=kayakWindType(wh.wind_direction_10m[i],facing);
+    items.push({i:kwt.icon,k:'כיוון רוח',v:kwt.label,lv:kwt.safe?'good':kwt.label.includes('סכנת')?'bad':'warn'});
 
-    // יציבות (פער פורצים-רוח)
-    const i2=dayIdx===0?nowIdx(wh.time):start;
-    const gd=Math.max(0,Math.round(wh.wind_gusts_10m[i2]-wh.wind_speed_10m[i2]));
-    items.push({i:'📊',k:'יציבות',v:`פער פורצים ${gd} קמ"ש · ${gd<8?'יציבה':gd<15?'משתנה':'gusty'}`,lv:gd<8?'good':gd<15?'ok':'warn'});
+    // גלים מקס׳ ביום
+    if(mh?.wave_height){
+      const arr=mh.wave_height.slice(start,end).filter(x=>x!=null);
+      if(arr.length){
+        const max=Math.max(...arr);
+        items.push({i:'🌊',k:'גלים מקס׳',v:fmtWaveShort(max),lv:max<.6?'good':max<1?'ok':max<1.5?'warn':'bad'});
+      }
+    }
+
+    // טמפ׳ מים — חשוב אם מתהפכים
+    if(mh?.sea_surface_temperature){
+      const arr=mh.sea_surface_temperature.slice(start,end).filter(x=>x!=null);
+      if(arr.length){
+        const avg=arr.reduce((a,b)=>a+b,0)/arr.length;
+        if(avg<18)items.push({i:'🥶',k:'מים קרים',v:`${avg.toFixed(1)}° — חליפה תרמית במקרה התהפכות`,lv:avg<15?'bad':'warn'});
+      }
+    }
   }
 
   return items;
@@ -930,11 +939,11 @@ function surfHero(d,i){
       <div class="surf-score-wrap">
         <div class="surf-num">${sc!=null?sc.toFixed(1):'—'}<span class="surf-num-max">/10</span></div>
         <div class="surf-meta">
-          <div class="surf-cap">${mode==='swim'?'ציון שחייה':mode==='sup'?'ציון סאפ':'ציון גלישה'}</div>
+          <div class="surf-cap">${mode==='swim'?'ציון שחייה':mode==='sup'?'ציון סאפ':mode==='kayak'?'ציון קיאק':'ציון גלישה'}</div>
           <div class="surf-label">${scoreLbl}</div>
         </div>
       </div>
-      <div style="font-size:34px">${mode==='swim'?'🏊':mode==='sup'?'🛶':'🏄'}</div>
+      <div style="font-size:34px">${mode==='swim'?'🏊':mode==='sup'?'🛶':mode==='kayak'?'🚣':'🏄'}</div>
     </div>
     <div class="surf-chips">
       ${ws?`<span class="s-chip"><span class="s-chip-i">${ws.icon}</span>${ws.txt}</span>`:''}
