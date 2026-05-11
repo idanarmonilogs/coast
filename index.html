@@ -142,15 +142,20 @@ main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
 .week-grid{display:flex;flex-direction:column;gap:8px;margin-top:8px}
 .day-btn{
   width:100%;display:grid;
-  grid-template-columns:60px 38px 1fr auto auto;align-items:center;gap:10px;
-  padding:13px 14px;
+  grid-template-columns:74px 38px 1fr auto auto;align-items:center;gap:10px;
+  padding:14px;
   background:var(--card-2);border:.5px solid var(--border);
   border-radius:14px;color:var(--text);font-family:inherit;
   cursor:pointer;text-align:right;transition:all .15s;
+  touch-action:manipulation;-webkit-user-select:none;user-select:none;
+  min-height:64px;
 }
+.day-btn>*{pointer-events:none}
 .day-btn:hover,.day-btn:focus-visible{background:rgba(255,255,255,.09);border-color:rgba(93,173,226,.4)}
-.day-btn:active{transform:scale(.98)}
-.day-name{font-size:14px;font-weight:700;color:var(--text)}
+.day-btn:active{transform:scale(.98);background:rgba(93,173,226,.12)}
+.day-namebox{display:flex;flex-direction:column;gap:2px;line-height:1.1}
+.day-name{font-size:14.5px;font-weight:700;color:var(--text)}
+.day-date{font-size:11px;font-weight:600;color:var(--text-3)}
 .day-ico{font-size:24px;text-align:center;line-height:1}
 .day-temp{font-size:17px;font-weight:700;letter-spacing:-.3px}
 .day-temp-min{font-size:13px;font-weight:600;color:var(--text-2);margin-right:3px}
@@ -546,13 +551,17 @@ function renderWeek(d){
   for(let i=0;i<7;i++){
     const date=new Date(wd.time[i]);
     const dn=i===0?'היום':i===1?'מחר':DAY_NAMES[date.getDay()]+'׳';
+    const dStr=`${date.getDate()}/${date.getMonth()+1}`;
     const tMax=Math.round(wd.temperature_2m_max[i]),tMin=Math.round(wd.temperature_2m_min[i]);
     const uvMax=wd.uv_index_max[i];
     const wMax=md?md.wave_height_max?.[i]:null;
     const code=wd.weather_code?.[i]??1;
     const waveStr=wMax!=null?fmtWaveShort(wMax):null;
-    days+=`<button class="day day-btn" data-day="${i}" aria-label="פתח תחזית שעתית ל${dn}">
-      <div class="day-name">${dn}</div>
+    days+=`<button class="day-btn" data-day="${i}" aria-label="פתח תחזית שעתית ל${dn} ${dStr}">
+      <div class="day-namebox">
+        <span class="day-name">${dn}</span>
+        <span class="day-date">${dStr}</span>
+      </div>
       <div class="day-ico">${wmoIcon(code,true)}</div>
       <div class="day-temp">${tMax}°<span class="day-temp-min">/${tMin}°</span></div>
       ${waveStr?`<div class="day-wave ${waveCls(wMax)}" style="color:var(--wv-color)">🌊 ${waveStr}</div>`:'<div class="day-wave dim">—</div>'}
