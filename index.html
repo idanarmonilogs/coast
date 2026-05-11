@@ -858,7 +858,28 @@ buildSpotPicker();
 applyMode();
 loadAll();
 setInterval(()=>loadAll(),30*60*1000);
-if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    // בודק עדכון בכל פתיחה
+    reg.update();
+    // אם נמצא sw חדש — הפעל אותו מיד ורענן
+    reg.addEventListener('updatefound',()=>{
+      const nw=reg.installing;
+      if(!nw)return;
+      nw.addEventListener('statechange',()=>{
+        if(nw.state==='installed'&&navigator.serviceWorker.controller){
+          nw.postMessage('skipWaiting');
+        }
+      });
+    });
+    // כש-sw חדש לקח שליטה — רענן את הדף
+    let refreshing=false;
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(refreshing)return;refreshing=true;
+      location.reload();
+    });
+  }).catch(()=>{});
+}
 </script>
 </body>
 </html>
