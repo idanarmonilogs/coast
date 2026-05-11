@@ -1,5 +1,5 @@
 // גרסה — בכל push תעלה אוטומטית כי השרת מחזיר sw.js חדש
-const VERSION='2026-05-11-08';
+const VERSION='2026-05-11-09';
 const CACHE=`beach-${VERSION}`;
 const ASSETS=['./','./index.html','./manifest.json','./icon.svg','./icon.png'];
 

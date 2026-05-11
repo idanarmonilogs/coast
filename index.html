@@ -112,6 +112,13 @@ h1{font-size:22px;font-weight:700;letter-spacing:-.5px;display:flex;align-items:
   border-radius:50%;cursor:pointer;transition:all .15s;
 }
 .refresh:active{background:rgba(93,173,226,.28);transform:scale(.92)}
+.lang-btn{
+  background:rgba(255,255,255,.06);border:.5px solid var(--border);color:var(--text);
+  height:34px;padding:0 11px;border-radius:17px;
+  font-size:12.5px;font-weight:700;font-family:inherit;
+  display:flex;align-items:center;gap:4px;cursor:pointer;transition:all .15s;
+}
+.lang-btn:active{background:rgba(93,173,226,.2);transform:scale(.94)}
 .refresh.spin svg{animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spot-picker{
@@ -372,9 +379,10 @@ main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
 <body>
 
 <header>
-  <h1><span>🌊</span> חופים</h1>
+  <h1><span>🌊</span> <span id="appTitle">חופים</span></h1>
   <div class="head-right">
     <div class="updated" id="updated">טוען…</div>
+    <button class="lang-btn" id="langBtn" aria-label="Language">🌐 <span id="langLabel">EN</span></button>
     <button class="refresh" id="refresh" aria-label="רענן">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3.13-6.84L21 8"/><path d="M21 3v5h-5"/></svg>
     </button>
@@ -390,7 +398,7 @@ main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
   <button class="mode-btn" data-mode="kayak" aria-pressed="false">🚣 קיאק</button>
 </div>
 
-<nav class="tabs" id="tabs" role="tablist" aria-label="טווח תחזית">
+<nav class="tabs" id="tabs" role="tablist">
   <button class="tab" data-view="now" role="tab" aria-selected="false">עכשיו</button>
   <button class="tab active" data-view="today" role="tab" aria-selected="true">היום</button>
   <button class="tab" data-view="week" role="tab" aria-selected="false">7 ימים</button>
@@ -398,9 +406,8 @@ main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
 
 <main id="main"><div class="loading">טוען נתונים…</div></main>
 
-<div class="footer">
-  נתונים: <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a> · גלים `WAM/MeteoFrance` · מזג אוויר `ECMWF`<br>
-  עדכון אוטומטי כל 30 דקות · `pull-to-refresh` נתמך
+<div class="footer" id="footer">
+  Data: <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a> · Waves `WAM/MeteoFrance` · Weather `ECMWF`
 </div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -415,36 +422,36 @@ main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
 // facing = הכיוון אליו פתוח החוף (לים). offshore רוח מהכיוון ההפוך
 const ALL_BEACHES=[
   // צפון
-  {id:'akhziv',name:'אכזיב',lat:33.0473,lon:35.1024,sea:'med',facing:270,region:'north'},
-  {id:'nahariya',name:'נהריה',lat:33.0023,lon:35.0944,sea:'med',facing:270,region:'north'},
-  {id:'shavei',name:'שבי ציון',lat:32.9831,lon:35.0824,sea:'med',facing:270,region:'north'},
-  {id:'haifa',name:'בת גלים (חיפה)',lat:32.8369,lon:35.0007,sea:'med',facing:270,region:'north'},
-  {id:'dado',name:'דדו (חיפה)',lat:32.7733,lon:34.9647,sea:'med',facing:270,region:'north'},
-  {id:'maagan',name:'מעגן מיכאל',lat:32.5615,lon:34.9183,sea:'med',facing:270,region:'north'},
-  {id:'nahsholim',name:'נחשולים',lat:32.6178,lon:34.9176,sea:'med',facing:270,region:'north'},
-  {id:'caesarea',name:'קיסריה',lat:32.5042,lon:34.8929,sea:'med',facing:270,region:'north'},
-  {id:'sdotyam',name:'שדות ים',lat:32.4838,lon:34.8889,sea:'med',facing:270,region:'north'},
-  {id:'mikhmoret',name:'מכמורת',lat:32.4124,lon:34.8694,sea:'med',facing:270,region:'north'},
-  {id:'beityanai',name:'בית ינאי',lat:32.3818,lon:34.8553,sea:'med',facing:270,region:'north'},
+  {id:'akhziv',name:'אכזיב',name_en:'Akhziv',lat:33.0473,lon:35.1024,sea:'med',facing:270,region:'north'},
+  {id:'nahariya',name:'נהריה',name_en:'Nahariya',lat:33.0023,lon:35.0944,sea:'med',facing:270,region:'north'},
+  {id:'shavei',name:'שבי ציון',name_en:'Shavei Tzion',lat:32.9831,lon:35.0824,sea:'med',facing:270,region:'north'},
+  {id:'haifa',name:'בת גלים (חיפה)',name_en:'Bat Galim (Haifa)',lat:32.8369,lon:35.0007,sea:'med',facing:270,region:'north'},
+  {id:'dado',name:'דדו (חיפה)',name_en:'Dado (Haifa)',lat:32.7733,lon:34.9647,sea:'med',facing:270,region:'north'},
+  {id:'maagan',name:'מעגן מיכאל',name_en:'Ma\'agan Michael',lat:32.5615,lon:34.9183,sea:'med',facing:270,region:'north'},
+  {id:'nahsholim',name:'נחשולים',name_en:'Nahsholim',lat:32.6178,lon:34.9176,sea:'med',facing:270,region:'north'},
+  {id:'caesarea',name:'קיסריה',name_en:'Caesarea',lat:32.5042,lon:34.8929,sea:'med',facing:270,region:'north'},
+  {id:'sdotyam',name:'שדות ים',name_en:'Sdot Yam',lat:32.4838,lon:34.8889,sea:'med',facing:270,region:'north'},
+  {id:'mikhmoret',name:'מכמורת',name_en:'Mikhmoret',lat:32.4124,lon:34.8694,sea:'med',facing:270,region:'north'},
+  {id:'beityanai',name:'בית ינאי',name_en:'Beit Yanai',lat:32.3818,lon:34.8553,sea:'med',facing:270,region:'north'},
   // מרכז
-  {id:'netanya',name:'נתניה',lat:32.3328,lon:34.8503,sea:'med',facing:270,region:'center'},
-  {id:'herzliya',name:'הרצליה',lat:32.1572,lon:34.7960,sea:'med',facing:270,region:'center'},
-  {id:'telaviv',name:'תל אביב (גורדון)',lat:32.0853,lon:34.7656,sea:'med',facing:270,region:'center'},
-  {id:'hilton',name:'תל אביב (הילטון)',lat:32.0903,lon:34.7693,sea:'med',facing:270,region:'center'},
-  {id:'batyam',name:'בת ים',lat:32.0167,lon:34.7440,sea:'med',facing:270,region:'center'},
-  {id:'rishon',name:'ראשון לציון',lat:31.9803,lon:34.7406,sea:'med',facing:270,region:'center'},
-  {id:'palmachim',name:'פלמחים',lat:31.9275,lon:34.6997,sea:'med',facing:270,region:'center'},
+  {id:'netanya',name:'נתניה',name_en:'Netanya',lat:32.3328,lon:34.8503,sea:'med',facing:270,region:'center'},
+  {id:'herzliya',name:'הרצליה',name_en:'Herzliya',lat:32.1572,lon:34.7960,sea:'med',facing:270,region:'center'},
+  {id:'telaviv',name:'תל אביב (גורדון)',name_en:'Tel Aviv (Gordon)',lat:32.0853,lon:34.7656,sea:'med',facing:270,region:'center'},
+  {id:'hilton',name:'תל אביב (הילטון)',name_en:'Tel Aviv (Hilton)',lat:32.0903,lon:34.7693,sea:'med',facing:270,region:'center'},
+  {id:'batyam',name:'בת ים',name_en:'Bat Yam',lat:32.0167,lon:34.7440,sea:'med',facing:270,region:'center'},
+  {id:'rishon',name:'ראשון לציון',name_en:'Rishon LeZion',lat:31.9803,lon:34.7406,sea:'med',facing:270,region:'center'},
+  {id:'palmachim',name:'פלמחים',name_en:'Palmachim',lat:31.9275,lon:34.6997,sea:'med',facing:270,region:'center'},
   // דרום
-  {id:'ashdod',name:'אשדוד',lat:31.7972,lon:34.6322,sea:'med',facing:270,region:'south'},
-  {id:'nitzanim',name:'ניצנים',lat:31.7194,lon:34.5781,sea:'med',facing:270,region:'south'},
-  {id:'ashkelon',name:'אשקלון',lat:31.6688,lon:34.5495,sea:'med',facing:270,region:'south'},
-  {id:'zikim',name:'זיקים',lat:31.5985,lon:34.5414,sea:'med',facing:270,region:'south'},
+  {id:'ashdod',name:'אשדוד',name_en:'Ashdod',lat:31.7972,lon:34.6322,sea:'med',facing:270,region:'south'},
+  {id:'nitzanim',name:'ניצנים',name_en:'Nitzanim',lat:31.7194,lon:34.5781,sea:'med',facing:270,region:'south'},
+  {id:'ashkelon',name:'אשקלון',name_en:'Ashkelon',lat:31.6688,lon:34.5495,sea:'med',facing:270,region:'south'},
+  {id:'zikim',name:'זיקים',name_en:'Zikim',lat:31.5985,lon:34.5414,sea:'med',facing:270,region:'south'},
   // ים סוף
-  {id:'eilat',name:'אילת (מגדל הים)',lat:29.5377,lon:34.9519,sea:'red',facing:200,region:'red'},
-  {id:'eilat_coral',name:'אילת (קורל)',lat:29.5050,lon:34.9133,sea:'red',facing:200,region:'red'},
-  {id:'eilat_almog',name:'אילת (אלמוג)',lat:29.4830,lon:34.9170,sea:'red',facing:200,region:'red'},
+  {id:'eilat',name:'אילת (מגדל הים)',name_en:'Eilat (Migdal HaYam)',lat:29.5377,lon:34.9519,sea:'red',facing:200,region:'red'},
+  {id:'eilat_coral',name:'אילת (קורל)',name_en:'Eilat (Coral)',lat:29.5050,lon:34.9133,sea:'red',facing:200,region:'red'},
+  {id:'eilat_almog',name:'אילת (אלמוג)',name_en:'Eilat (Almog)',lat:29.4830,lon:34.9170,sea:'red',facing:200,region:'red'},
 ];
-const REGION_NAMES={north:'צפון',center:'מרכז',south:'דרום',red:'ים סוף'};
+const REGION_NAMES=()=>t('regions');
 const DEFAULT_SPOT_IDS=['nahsholim','sdotyam','telaviv','eilat'];
 
 function loadSelectedSpotIds(){
@@ -467,8 +474,114 @@ function saveSelectedSpotIds(ids){localStorage.setItem('beachSelectedIds',JSON.s
 let SPOTS=loadSelectedSpotIds().map(id=>ALL_BEACHES.find(b=>b.id===id)).filter(Boolean);
 if(!SPOTS.length)SPOTS=DEFAULT_SPOT_IDS.map(id=>ALL_BEACHES.find(b=>b.id===id));
 const CACHE_KEY='beachData_v7',CACHE_TTL=30*60*1000;
+const DIRS=()=>t('dirs');
+const DAY_NAMES=()=>t('days');
 const SPOT_KEY='beachSelectedSpot';
 const MODE_KEY='beachMode';
+const LANG_KEY='beachLang';
+let lang=localStorage.getItem(LANG_KEY)||'he';
+if(!['he','en'].includes(lang))lang='he';
+
+const T={
+  he:{
+    title:'חופים', subtitle:'גלים, רוח, קרינה',
+    loading:'טוען נתונים…', loadingShort:'טוען…', refresh:'רענן', updated:'עודכן',
+    cacheNote:'⚠ מטמון',
+    tabRange:'טווח תחזית', now:'עכשיו', today:'היום', tomorrow:'מחר', week:'7 ימים', sevenDays:'7 ימים',
+    backToday:'→ חזור להיום',
+    modePicker:'מצב פעילות', swim:'🏊 שחייה', sup:'🛶 סאפ', surf:'🏄 גלישה', kayak:'🚣 קיאק',
+    addBeaches:'＋ חופים', spotPicker:'בחירת חוף', editBeaches:'הוסף או הסר חופים',
+    beachManager:'חופים', save:'שמור', selectAtLeast:'בחר לפחות חוף אחד', close:'סגור',
+    regions:{north:'צפון',center:'מרכז',south:'דרום',red:'ים סוף'},
+    days:['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'],
+    dirs:['צ','צ-מז','מז','ד-מז','ד','ד-מע','מע','צ-מע'],
+    waveTiers:['שטוח','קטן','בינוני','גדול','ענק'],
+    windTiers:['חלש','בינוני','חזק','חזק מאוד','סוער'],
+    uvTiers:['נמוך','בינוני','גבוה','גבוה מאוד','קיצוני'],
+    scoreLabels:['גרוע','חלש','בסדר','טוב','מצוין'],
+    waterTiers:['חמימים','נעימים','קרירים','קרים','קפואים'],
+    wmoTexts:{0:'שמיים בהירים',1:'מעונן חלקית',2:'מעונן חלקית',3:'מעונן',45:'ערפל',48:'ערפל',drizzle:'טפטוף',rain:'גשם',snow:'שלג',showers:'ממטרים',thunder:'סופת רעמים'},
+    units:{m:'מ׳',cm:'ס״מ',kmh:'קמ"ש',sec:'שנ׳',hr:'ש׳',deg:'°'},
+    metric:{waves:'גלים',wavesMax:'גלים מקס׳',water:'מים',wind:'רוח',windMax:'רוח מקס׳',uv:'קרינה',uvMax:'קרינה מקס׳',air:'אוויר',temp:'טמפ׳',sunrise:'🌅',sunset:'🌇',period:'שנ׳',gusts:'פורצים',avgDay:'ממוצע יומי'},
+    score:{swim:'ציון שחייה',sup:'ציון סאפ',surf:'ציון גלישה',kayak:'ציון קיאק'},
+    burnMin:'כוויה',peak:'שיא',outOf:'/10',airSuffix:'אוויר',
+    wetsuit:'חליפה',bestWindow:'שיא ב-',
+    windTypes:{offshore:'יבשתית','cross-off':'חצי יבשתית','cross-on':'צידית',onshore:'ימית'},
+    pressGuide:'לחץ על יום לתחזית שעתית',
+    rainProb:'💧', waveIcon:'🌊', windIcon:'💨',
+    ins:{
+      calmWindow:'חלון שקט', condRough:'מצב הים', condRoughVal:'גלי או רוחי כל היום',
+      waterAvgDur:'משך',
+      durUnlimited:'ללא הגבלה',durLong:'ארוכה',durMid:'30-60 דק׳',durShort:'15-30 דק׳',durCold:'קצרה - היזהר',
+      radiation:'קרינה',sunriseSwim:'שחיית שחר',
+      lightWindWin:'חלון רוח חלשה',windMax:'רוח מקס׳',
+      windDir:'כיוון רוח',offshoreSupWarn:'סיכון להיסחף לים — חבר חברה',
+      windDirSafe:'בטוח',wavesMax:'גלים מקס׳',
+      offshoreWin:'חלון רוח יבשתית',windNoOffshore:'אין offshore היום',
+      periodMax:'מחזור מקס׳',windChop:'wind chop',mixed:'מעורב',ground:'groundswell',groundLong:'groundswell ארוך',
+      heightMax:'גובה מקס׳',waveDir:'כיוון גלים',
+      paddleWin:'חלון שייט נוח',condRoughKayak:'תנאי שייט',condRoughVal2:'תנאים קשים כל היום',
+      tripRec:'המלצת מרחק',
+      tripLong:'טיול ארוך · עד 10 ק"מ',tripMid:'טיול בינוני · 5-8 ק"מ',tripShort:'טיול קצר · עד 4 ק"מ קרוב לחוף',tripExpert:'מנוסים בלבד · קרוב מאוד לחוף',tripNo:'לא מומלץ — הישאר ביבשה',
+      coldWater:'מים קרים',coldWaterSuffix:'חליפה תרמית במקרה התהפכות',
+      kayakSafe:'צידית — מומלצת',kayakSafe2:'ימית — בטוחה',kayakWarn:'חצי יבשתית — היזהר',kayakBad:'יבשתית — סכנת היסחפות',
+    },
+    waterCaps:'מים',waveDirText:'כיוון',
+    burnSuffix:'דק׳',
+  },
+  en:{
+    title:'Coast', subtitle:'Waves, Wind, UV',
+    loading:'Loading…', loadingShort:'Loading…', refresh:'Refresh', updated:'Updated',
+    cacheNote:'⚠ Cached',
+    tabRange:'Forecast range', now:'Now', today:'Today', tomorrow:'Tomorrow', week:'7 days', sevenDays:'7 days',
+    backToday:'← Back to today',
+    modePicker:'Activity', swim:'🏊 Swim', sup:'🛶 SUP', surf:'🏄 Surf', kayak:'🚣 Kayak',
+    addBeaches:'＋ Beaches', spotPicker:'Pick beach', editBeaches:'Add or remove beaches',
+    beachManager:'Beaches', save:'Save', selectAtLeast:'Select at least one beach', close:'Close',
+    regions:{north:'North',center:'Center',south:'South',red:'Red Sea'},
+    days:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+    dirs:['N','NE','E','SE','S','SW','W','NW'],
+    waveTiers:['Flat','Small','Medium','Large','Huge'],
+    windTiers:['Light','Moderate','Strong','V.strong','Stormy'],
+    uvTiers:['Low','Moderate','High','V.high','Extreme'],
+    scoreLabels:['Poor','Weak','Fair','Good','Excellent'],
+    waterTiers:['Warm','Pleasant','Cool','Cold','Freezing'],
+    wmoTexts:{0:'Clear sky',1:'Partly cloudy',2:'Partly cloudy',3:'Overcast',45:'Fog',48:'Fog',drizzle:'Drizzle',rain:'Rain',snow:'Snow',showers:'Showers',thunder:'Thunderstorm'},
+    units:{m:'m',cm:'cm',kmh:'km/h',sec:'s',hr:'h',deg:'°'},
+    metric:{waves:'Waves',wavesMax:'Max waves',water:'Water',wind:'Wind',windMax:'Max wind',uv:'UV',uvMax:'Max UV',air:'Air',temp:'Temp',sunrise:'🌅',sunset:'🌇',period:'s',gusts:'gusts',avgDay:'daily avg'},
+    score:{swim:'Swim score',sup:'SUP score',surf:'Surf score',kayak:'Kayak score'},
+    burnMin:'Burn',peak:'Peak',outOf:'/10',airSuffix:'air',
+    wetsuit:'Wetsuit',bestWindow:'Peak at ',
+    windTypes:{offshore:'Offshore','cross-off':'Cross-off','cross-on':'Side-shore',onshore:'Onshore'},
+    pressGuide:'Tap a day for hourly forecast',
+    rainProb:'💧', waveIcon:'🌊', windIcon:'💨',
+    ins:{
+      calmWindow:'Calm window', condRough:'Sea state', condRoughVal:'Wavy or windy all day',
+      waterAvgDur:'duration',
+      durUnlimited:'unlimited',durLong:'long',durMid:'30-60 min',durShort:'15-30 min',durCold:'short - caution',
+      radiation:'UV index',sunriseSwim:'Dawn swim',
+      lightWindWin:'Light wind window',windMax:'Max wind',
+      windDir:'Wind direction',offshoreSupWarn:'Risk of drift — bring a buddy',
+      windDirSafe:'safe',wavesMax:'Max waves',
+      offshoreWin:'Offshore window',windNoOffshore:'No offshore today',
+      periodMax:'Max period',windChop:'wind chop',mixed:'mixed',ground:'groundswell',groundLong:'long groundswell',
+      heightMax:'Max height',waveDir:'Wave direction',
+      paddleWin:'Easy paddle window',condRoughKayak:'Paddle conditions',condRoughVal2:'Difficult all day',
+      tripRec:'Distance recommendation',
+      tripLong:'Long trip · up to 10 km',tripMid:'Medium trip · 5-8 km',tripShort:'Short trip · up to 4 km near shore',tripExpert:'Experts only · very close to shore',tripNo:'Not recommended — stay ashore',
+      coldWater:'Cold water',coldWaterSuffix:'thermal suit in case of capsize',
+      kayakSafe:'Side-shore — recommended',kayakSafe2:'Onshore — safe',kayakWarn:'Cross-off — caution',kayakBad:'Offshore — drift risk',
+    },
+    waterCaps:'Water',waveDirText:'dir',
+    burnSuffix:'min',
+  }
+};
+const t=(k,...args)=>{
+  const keys=k.split('.');let v=T[lang];
+  for(const kk of keys){if(v==null)break;v=v[kk]}
+  if(typeof v==='function')return v(...args);
+  return v??k;
+};
 let selectedSpot=localStorage.getItem(SPOT_KEY)||'nahsholim';
 let mode=localStorage.getItem(MODE_KEY)||'swim'; // 'swim'/'sup'/'surf'/'kayak'
 if(!['swim','sup','surf','kayak'].includes(mode))mode='swim';
@@ -479,22 +592,18 @@ if(!SPOTS.find(s=>s.id===selectedSpot)){
   selectedSpot=SPOTS[0]?.id||'nahsholim';
   localStorage.setItem(SPOT_KEY,selectedSpot);
 }
-const DIRS=['צ','צ-מז','מז','ד-מז','ד','ד-מע','מע','צ-מע'];
-const DAY_NAMES=['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
-
-const dirText=d=>DIRS[Math.round(d/45)%8];
+const dirText=d=>DIRS()[Math.round(d/45)%8];
 const dirArrow=d=>`<span class="dir-arrow" style="transform:rotate(${(d+180)%360}deg)">↑</span>`;
 const fmtT=iso=>iso.slice(11,16);
 const uvCls=v=>v<3?'uv-l':v<6?'uv-m':v<8?'uv-h':v<11?'uv-v':'uv-x';
-const uvTier=v=>v<3?'נמוך':v<6?'בינוני':v<8?'גבוה':v<11?'גבוה מאוד':'קיצוני';
+const uvTier=v=>{const arr=t('uvTiers');return v<3?arr[0]:v<6?arr[1]:v<8?arr[2]:v<11?arr[3]:arr[4]};
 const uvIcon=v=>v<3?'🟢':v<6?'🟡':v<8?'🟠':v<11?'🔴':'🟣';
-const uvAdvice=v=>v<3?{spf:'ללא הגנה',gear:''}:v<6?{spf:'SPF 30',gear:'כובע מומלץ'}:v<8?{spf:'SPF 50',gear:'כובע + משקפיים'}:v<11?{spf:'SPF 50+',gear:'כובע, חולצה, צל ב-11-15'}:{spf:'הימנע מחשיפה',gear:'הגנה מלאה'};
-const burnMin=v=>v>0?Math.round(200/v):null; // skin type II-III
+const burnMin=v=>v>0?Math.round(200/v):null;
 const waveCls=h=>h<.3?'wv-l':h<.7?'wv-m':h<1.2?'wv-h':h<2?'wv-x':'wv-xx';
-const waveTier=h=>h<.3?'שטוח':h<.7?'קטן':h<1.2?'בינוני':h<2?'גדול':'ענק';
-const fmtWave=h=>h<1?`${Math.round(h*100)} ס"מ`:`${h.toFixed(1)} מ׳`;
-const fmtWaveShort=h=>h<1?`${Math.round(h*100)}ס״מ`:`${h.toFixed(1)}מ׳`;
-const windTier=s=>s<10?'חלש':s<20?'בינוני':s<30?'חזק':s<40?'חזק מאוד':'סוער';
+const waveTier=h=>{const arr=t('waveTiers');return h<.3?arr[0]:h<.7?arr[1]:h<1.2?arr[2]:h<2?arr[3]:arr[4]};
+const fmtWave=h=>h<1?`${Math.round(h*100)} ${t('units.cm')}`:`${h.toFixed(1)} ${t('units.m')}`;
+const fmtWaveShort=h=>h<1?`${Math.round(h*100)}${t('units.cm')}`:`${h.toFixed(1)}${t('units.m')}`;
+const windTier=s=>{const arr=t('windTiers');return s<10?arr[0]:s<20?arr[1]:s<30?arr[2]:s<40?arr[3]:arr[4]};
 const windCls=s=>s<10?'wn-l':s<20?'wn-m':s<30?'wn-h':s<40?'wn-v':'wn-x';
 const windIcon=s=>s<10?'🍃':s<20?'💨':s<30?'🌬️':s<40?'🌪️':'⚠️';
 const dirArrowSm=d=>`<span style="display:inline-block;color:var(--wn-color,var(--accent));transform:rotate(${(d+180)%360}deg);font-size:11px;line-height:1">↑</span>`;
@@ -503,12 +612,13 @@ const dirArrowSm=d=>`<span style="display:inline-block;color:var(--wn-color,var(
 // offshore = הרוח מהיבשה לים (נקייה, הכי טובה לגלישה)
 // onshore = מהים ליבשה (מבחנת את הגלים, גרוע)
 function windType(windDir,facing){
-  const off=(facing+180)%360; // הכיוון של offshore
+  const off=(facing+180)%360;
   let diff=Math.abs(windDir-off);if(diff>180)diff=360-diff;
-  if(diff<=45)return{type:'offshore',label:'יבשתית',color:'#4ade80',icon:'✨',score:1};
-  if(diff<=90)return{type:'cross-off',label:'חצי יבשתית',color:'#a3e635',icon:'◐',score:.7};
-  if(diff<=135)return{type:'cross-on',label:'חצי ימית',color:'#fbbf24',icon:'◑',score:.35};
-  return{type:'onshore',label:'ימית',color:'#f87171',icon:'⚠',score:0};
+  const wt=t('windTypes');
+  if(diff<=45)return{type:'offshore',label:wt.offshore,color:'#4ade80',icon:'✨',score:1};
+  if(diff<=90)return{type:'cross-off',label:wt['cross-off'],color:'#a3e635',icon:'◐',score:.7};
+  if(diff<=135)return{type:'cross-on',label:wt['cross-on'],color:'#fbbf24',icon:'◑',score:.35};
+  return{type:'onshore',label:wt.onshore,color:'#f87171',icon:'⚠',score:0};
 }
 
 // ציון גלישה 0-10
@@ -569,58 +679,64 @@ function score(mode,waveH,wavePer,windSpd,windDir,facing,sst,gust){
 
 // המלצת מרחק/משך טיול קיאק לפי תנאי רוח
 function kayakTrip(windSpd){
-  if(windSpd<10)return'טיול ארוך · עד 10 ק"מ';
-  if(windSpd<18)return'טיול בינוני · 5-8 ק"מ';
-  if(windSpd<25)return'טיול קצר · עד 4 ק"מ קרוב לחוף';
-  if(windSpd<32)return'מנוסים בלבד · קרוב מאוד לחוף';
-  return'לא מומלץ — הישאר ביבשה';
+  if(windSpd<10)return t('ins.tripLong');
+  if(windSpd<18)return t('ins.tripMid');
+  if(windSpd<25)return t('ins.tripShort');
+  if(windSpd<32)return t('ins.tripExpert');
+  return t('ins.tripNo');
 }
 
-// סוג רוח לקיאק (offshore = מסוכן בגלל היסחפות)
 function kayakWindType(windDir,facing){
   const off=(facing+180)%360;
   let diff=Math.abs(windDir-off);if(diff>180)diff=360-diff;
-  if(diff<=30)return{label:'יבשתית — סכנת היסחפות',color:'#f87171',icon:'⚠️',safe:false};
-  if(diff<=60)return{label:'חצי יבשתית — היזהר',color:'#fbbf24',icon:'◑',safe:false};
-  if(diff<=120)return{label:'צידית — מומלצת',color:'#4ade80',icon:'✨',safe:true};
-  return{label:'ימית — בטוחה',color:'#a3e635',icon:'◐',safe:true};
+  if(diff<=30)return{label:t('ins.kayakBad'),color:'#f87171',icon:'⚠️',safe:false,severity:'bad'};
+  if(diff<=60)return{label:t('ins.kayakWarn'),color:'#fbbf24',icon:'◑',safe:false,severity:'warn'};
+  if(diff<=120)return{label:t('ins.kayakSafe'),color:'#4ade80',icon:'✨',safe:true,severity:'good'};
+  return{label:t('ins.kayakSafe2'),color:'#a3e635',icon:'◐',safe:true,severity:'good'};
 }
 const scoreCls=s=>s<2?'sc-1':s<4?'sc-2':s<6?'sc-3':s<8?'sc-4':'sc-5';
-const scoreLabel=s=>s<2?'גרוע':s<4?'חלש':s<6?'בסדר':s<8?'טוב':'מצוין';
+const scoreLabel=s=>{const arr=t('scoreLabels');return s<2?arr[0]:s<4?arr[1]:s<6?arr[2]:s<8?arr[3]:arr[4]};
 
-// חליפה — מותאם לפעילות
-function wetsuit(t,mode){
-  if(t==null)return null;
-  if(mode==='swim'){
-    if(t>=25)return{txt:'בגד ים',icon:'🩳'};
-    if(t>=22)return{txt:'בגד ים + כובע נאופרן',icon:'🏊'};
-    if(t>=19)return{txt:'חליפה 2מ"מ',icon:'🥽'};
-    if(t>=16)return{txt:'חליפה 3/2 + כובע',icon:'🤿'};
-    if(t>=13)return{txt:'חליפה 4/3 + כפפות',icon:'🧤'};
-    return{txt:'חליפה תרמית מלאה',icon:'🥶'};
+// טבלת חליפות לכל ספורט/טמפ׳/שפה
+const WETSUIT_TABLE={
+  swim:[
+    {t:25,he:'בגד ים',en:'Swimsuit',icon:'🩳'},
+    {t:22,he:'בגד ים + כובע נאופרן',en:'Swimsuit + neoprene cap',icon:'🏊'},
+    {t:19,he:'חליפה 2מ"מ',en:'2mm wetsuit',icon:'🥽'},
+    {t:16,he:'חליפה 3/2 + כובע',en:'3/2 wetsuit + cap',icon:'🤿'},
+    {t:13,he:'חליפה 4/3 + כפפות',en:'4/3 wetsuit + gloves',icon:'🧤'},
+    {t:-99,he:'חליפה תרמית מלאה',en:'Full thermal suit',icon:'🥶'}
+  ],
+  sup:[
+    {t:24,he:'בגד ים',en:'Swimsuit',icon:'🩳'},
+    {t:21,he:'ליקרה',en:'Lycra',icon:'👕'},
+    {t:18,he:'שורטי 2מ"מ',en:'2mm shorty',icon:'🥽'},
+    {t:15,he:'חליפה 3/2',en:'3/2 wetsuit',icon:'🤿'},
+    {t:-99,he:'חליפה 4/3',en:'4/3 wetsuit',icon:'🥶'}
+  ],
+  kayak:[
+    {t:23,he:'בגד ים + ליקרה',en:'Swimsuit + lycra',icon:'🩳'},
+    {t:20,he:'ליקרה + מכנס קצר',en:'Lycra + shorts',icon:'👕'},
+    {t:17,he:'שורטי 2מ"מ',en:'2mm shorty',icon:'🥽'},
+    {t:14,he:'חליפה 3/2',en:'3/2 wetsuit',icon:'🤿'},
+    {t:-99,he:'חליפה 4/3 + מעיל יבש',en:'4/3 wetsuit + dry top',icon:'🥶'}
+  ],
+  surf:[
+    {t:24,he:'בגד ים',en:'Boardshorts',icon:'🩳'},
+    {t:22,he:'ליקרה/ספרינג',en:'Lycra/spring',icon:'👕'},
+    {t:19,he:'שורטי 2מ"מ',en:'2mm shorty',icon:'🥽'},
+    {t:17,he:'חליפה 3/2',en:'3/2 wetsuit',icon:'🤿'},
+    {t:-99,he:'חליפה 4/3+',en:'4/3+ wetsuit',icon:'🥶'}
+  ]
+};
+
+function wetsuit(temp,m){
+  if(temp==null)return null;
+  const list=WETSUIT_TABLE[m]||WETSUIT_TABLE.surf;
+  for(const item of list){
+    if(temp>=item.t)return{txt:item[lang],icon:item.icon};
   }
-  if(mode==='sup'){
-    // סאפ פחות שקוע — הגנה למקרי נפילה
-    if(t>=24)return{txt:'בגד ים',icon:'🩳'};
-    if(t>=21)return{txt:'ליקרה',icon:'👕'};
-    if(t>=18)return{txt:'שורטי 2מ"מ',icon:'🥽'};
-    if(t>=15)return{txt:'חליפה 3/2',icon:'🤿'};
-    return{txt:'חליפה 4/3',icon:'🥶'};
-  }
-  if(mode==='kayak'){
-    // קיאק — חשיפה לרסס, פחות שקוע. דומה לסאפ אבל מעט סובלני יותר
-    if(t>=23)return{txt:'בגד ים + ליקרה',icon:'🩳'};
-    if(t>=20)return{txt:'ליקרה + מכנס קצר',icon:'👕'};
-    if(t>=17)return{txt:'שורטי 2מ"מ',icon:'🥽'};
-    if(t>=14)return{txt:'חליפה 3/2',icon:'🤿'};
-    return{txt:'חליפה 4/3 + מעיל יבש',icon:'🥶'};
-  }
-  // surf
-  if(t>=24)return{txt:'בגד ים',icon:'🩳'};
-  if(t>=22)return{txt:'ליקרה/ספרינג',icon:'👕'};
-  if(t>=19)return{txt:'שורטי 2מ"מ',icon:'🥽'};
-  if(t>=17)return{txt:'חליפה 3/2',icon:'🤿'};
-  return{txt:'חליפה 4/3+',icon:'🥶'};
+  return null;
 }
 
 // חלון הזמן הטוב היום לפי המצב
@@ -660,126 +776,111 @@ function modeInsights(mode,d,dayIdx){
   const start=dayIdx*24,end=Math.min(start+24,wh.time.length);
   const items=[];
 
+  const I=k=>t('ins.'+k),u=t('units'),H=`${u.hr}`;
+
   if(mode==='swim'){
-    // חלון מים שקטים
     const calm=findRange(wh,mh,start,end,(i)=>{
       const w=mh?.wave_height?.[i];return (w==null||w<.4)&&wh.wind_speed_10m[i]<12;
     });
-    if(calm)items.push({i:'🌊',k:'חלון שקט',v:`${pad2(calm.from)}-${pad2(calm.to)} (${calm.hours}ש׳)`,lv:'good'});
-    else items.push({i:'⚠️',k:'מצב הים',v:'גלי או רוחי כל היום',lv:'warn'});
+    if(calm)items.push({i:'🌊',k:I('calmWindow'),v:`${pad2(calm.from)}-${pad2(calm.to)} (${calm.hours}${H})`,lv:'good'});
+    else items.push({i:'⚠️',k:I('condRough'),v:I('condRoughVal'),lv:'warn'});
 
-    // טמפ׳ מים ממוצעת
     if(mh?.sea_surface_temperature){
       const arr=mh.sea_surface_temperature.slice(start,end).filter(x=>x!=null);
       if(arr.length){
         const avg=arr.reduce((a,b)=>a+b,0)/arr.length;
-        const dur=avg>=24?'ללא הגבלה':avg>=21?'ארוכה':avg>=18?'30-60 דק׳':avg>=15?'15-30 דק׳':'קצרה - היזהר';
-        items.push({i:'💧',k:'מים',v:`${avg.toFixed(1)}° · משך ${dur}`,lv:avg>=21?'good':avg>=18?'ok':'cold'});
+        const dur=avg>=24?I('durUnlimited'):avg>=21?I('durLong'):avg>=18?I('durMid'):avg>=15?I('durShort'):I('durCold');
+        items.push({i:'💧',k:t('metric.water'),v:`${avg.toFixed(1)}° · ${I('waterAvgDur')} ${dur}`,lv:avg>=21?'good':avg>=18?'ok':'cold'});
       }
     }
-    // UV ושעת שיא
     const uvMax=wd.uv_index_max[dayIdx];
     if(uvMax>=3){
       const bm=burnMin(uvMax);
-      items.push({i:'☀️',k:'קרינה',v:`UV ${uvMax.toFixed(0)} · כוויה ${bm} דק׳`,lv:uvMax>=8?'bad':uvMax>=6?'warn':'ok'});
+      items.push({i:'☀️',k:I('radiation'),v:`UV ${uvMax.toFixed(0)} · ${t('burnMin')} ${bm} ${t('burnSuffix')}`,lv:uvMax>=8?'bad':uvMax>=6?'warn':'ok'});
     }
-    // שעת זריחה
-    items.push({i:'🌅',k:'שחיית שחר',v:fmtT(wd.sunrise[dayIdx]),lv:'good'});
+    items.push({i:'🌅',k:I('sunriseSwim'),v:fmtT(wd.sunrise[dayIdx]),lv:'good'});
   }
 
   if(mode==='sup'){
-    // חלון רוח חלשה
     const calm=findRange(wh,mh,start,end,(i)=>wh.wind_speed_10m[i]<12);
-    if(calm)items.push({i:'🪶',k:'חלון רוח חלשה',v:`${pad2(calm.from)}-${pad2(calm.to)} (${calm.hours}ש׳)`,lv:'good'});
-    // עוצמת רוח מקס׳
+    if(calm)items.push({i:'🪶',k:I('lightWindWin'),v:`${pad2(calm.from)}-${pad2(calm.to)} (${calm.hours}${H})`,lv:'good'});
     const wMax=Math.round(wd.wind_speed_10m_max[dayIdx]);
-    items.push({i:'💨',k:'רוח מקס׳',v:`${wMax} קמ"ש · ${windTier(wMax)}`,lv:wMax<15?'good':wMax<22?'warn':'bad'});
-    // אזהרת רוח יבשתית (סאפ — מסוכן!)
+    items.push({i:'💨',k:I('windMax'),v:`${wMax} ${u.kmh} · ${windTier(wMax)}`,lv:wMax<15?'good':wMax<22?'warn':'bad'});
     const i=dayIdx===0?nowIdx(wh.time):start;
     const wt=windType(wh.wind_direction_10m[i],facing);
     if(wt.type==='offshore'||wt.type==='cross-off'){
-      items.push({i:'⚠️',k:'רוח יבשתית',v:'סיכון להיסחף לים — חבר חברה',lv:'bad'});
+      items.push({i:'⚠️',k:I('windDir'),v:I('offshoreSupWarn'),lv:'bad'});
     }else{
-      items.push({i:'✓',k:'כיוון רוח',v:wt.label+' · בטוח',lv:'good'});
+      items.push({i:'✓',k:I('windDir'),v:`${wt.label} · ${I('windDirSafe')}`,lv:'good'});
     }
-    // גלים מקס׳
     if(mh?.wave_height){
       const arr=mh.wave_height.slice(start,end).filter(x=>x!=null);
-      if(arr.length){const max=Math.max(...arr);items.push({i:'🌊',k:'גלים מקס׳',v:fmtWaveShort(max),lv:max<.5?'good':max<.8?'ok':'warn'});}
+      if(arr.length){const max=Math.max(...arr);items.push({i:'🌊',k:I('wavesMax'),v:fmtWaveShort(max),lv:max<.5?'good':max<.8?'ok':'warn'});}
     }
   }
 
   if(mode==='surf'){
-    // חלון offshore
     const offshore=findRange(wh,mh,start,end,(i)=>{
       const wt=windType(wh.wind_direction_10m[i],facing);
       return (wt.type==='offshore'||wt.type==='cross-off')&&wh.wind_speed_10m[i]<25;
     });
-    if(offshore)items.push({i:'✨',k:'חלון רוח יבשתית',v:`${pad2(offshore.from)}-${pad2(offshore.to)} (${offshore.hours}ש׳)`,lv:'good'});
-    else items.push({i:'⚠️',k:'רוח',v:'אין offshore היום',lv:'warn'});
+    if(offshore)items.push({i:'✨',k:I('offshoreWin'),v:`${pad2(offshore.from)}-${pad2(offshore.to)} (${offshore.hours}${H})`,lv:'good'});
+    else items.push({i:'⚠️',k:t('metric.wind'),v:I('windNoOffshore'),lv:'warn'});
 
-    // מחזור גלים
     if(mh?.wave_period){
       const arr=mh.wave_period.slice(start,end).filter(x=>x!=null);
       if(arr.length){
         const max=Math.max(...arr);
-        const q=max<6?'wind chop':max<9?'מעורב':max<12?'groundswell':'groundswell ארוך';
-        items.push({i:'⏱️',k:'מחזור מקס׳',v:`${max.toFixed(0)} שנ׳ · ${q}`,lv:max<6?'bad':max<9?'ok':'good'});
+        const q=max<6?I('windChop'):max<9?I('mixed'):max<12?I('ground'):I('groundLong');
+        items.push({i:'⏱️',k:I('periodMax'),v:`${max.toFixed(0)} ${u.sec} · ${q}`,lv:max<6?'bad':max<9?'ok':'good'});
       }
     }
-    // גובה מקס׳
     if(mh?.wave_height){
       const arr=mh.wave_height.slice(start,end).filter(x=>x!=null);
       if(arr.length){
         const max=Math.max(...arr);
-        items.push({i:'🌊',k:'גובה מקס׳',v:fmtWaveShort(max),lv:max>=.7?'good':max>=.4?'ok':'warn'});
+        items.push({i:'🌊',k:I('heightMax'),v:fmtWaveShort(max),lv:max>=.7?'good':max>=.4?'ok':'warn'});
       }
     }
-    // כיוון גלים
     if(mh?.wave_direction){
       const arr=mh.wave_direction.slice(start,end).filter(x=>x!=null);
       if(arr.length){
         const dir=arr[Math.floor(arr.length/2)];
-        items.push({i:'🧭',k:'כיוון גלים',v:`${dirText(dir)} (${Math.round(dir)}°)`,lv:'ok'});
+        items.push({i:'🧭',k:I('waveDir'),v:`${dirText(dir)} (${Math.round(dir)}°)`,lv:'ok'});
       }
     }
   }
 
   if(mode==='kayak'){
-    // חלון שייט נוח (רוח<20, גלים<0.7)
     const calm=findRange(wh,mh,start,end,(i)=>{
       const w=mh?.wave_height?.[i];
       return wh.wind_speed_10m[i]<20&&(w==null||w<.7);
     });
-    if(calm)items.push({i:'🚣',k:'חלון שייט נוח',v:`${pad2(calm.from)}-${pad2(calm.to)} (${calm.hours}ש׳)`,lv:'good'});
-    else items.push({i:'⚠️',k:'תנאי שייט',v:'תנאים קשים כל היום',lv:'warn'});
+    if(calm)items.push({i:'🚣',k:I('paddleWin'),v:`${pad2(calm.from)}-${pad2(calm.to)} (${calm.hours}${H})`,lv:'good'});
+    else items.push({i:'⚠️',k:I('condRoughKayak'),v:I('condRoughVal2'),lv:'warn'});
 
-    // רוח מקס׳ + המלצת מרחק
     const wMax=Math.round(wd.wind_speed_10m_max[dayIdx]);
     const trip=kayakTrip(wMax);
-    items.push({i:'💨',k:'רוח מקס׳',v:`${wMax} קמ"ש · ${windTier(wMax)}`,lv:wMax<15?'good':wMax<22?'ok':wMax<30?'warn':'bad'});
-    items.push({i:'📏',k:'המלצת מרחק',v:trip,lv:wMax<18?'good':wMax<25?'ok':wMax<32?'warn':'bad'});
+    items.push({i:'💨',k:I('windMax'),v:`${wMax} ${u.kmh} · ${windTier(wMax)}`,lv:wMax<15?'good':wMax<22?'ok':wMax<30?'warn':'bad'});
+    items.push({i:'📏',k:I('tripRec'),v:trip,lv:wMax<18?'good':wMax<25?'ok':wMax<32?'warn':'bad'});
 
-    // בטיחות כיוון רוח (offshore = סכנת היסחפות)
     const i=dayIdx===0?nowIdx(wh.time):start;
     const kwt=kayakWindType(wh.wind_direction_10m[i],facing);
-    items.push({i:kwt.icon,k:'כיוון רוח',v:kwt.label,lv:kwt.safe?'good':kwt.label.includes('סכנת')?'bad':'warn'});
+    items.push({i:kwt.icon,k:I('windDir'),v:kwt.label,lv:kwt.severity});
 
-    // גלים מקס׳ ביום
     if(mh?.wave_height){
       const arr=mh.wave_height.slice(start,end).filter(x=>x!=null);
       if(arr.length){
         const max=Math.max(...arr);
-        items.push({i:'🌊',k:'גלים מקס׳',v:fmtWaveShort(max),lv:max<.6?'good':max<1?'ok':max<1.5?'warn':'bad'});
+        items.push({i:'🌊',k:I('wavesMax'),v:fmtWaveShort(max),lv:max<.6?'good':max<1?'ok':max<1.5?'warn':'bad'});
       }
     }
 
-    // טמפ׳ מים — חשוב אם מתהפכים
     if(mh?.sea_surface_temperature){
       const arr=mh.sea_surface_temperature.slice(start,end).filter(x=>x!=null);
       if(arr.length){
         const avg=arr.reduce((a,b)=>a+b,0)/arr.length;
-        if(avg<18)items.push({i:'🥶',k:'מים קרים',v:`${avg.toFixed(1)}° — חליפה תרמית במקרה התהפכות`,lv:avg<15?'bad':'warn'});
+        if(avg<18)items.push({i:'🥶',k:I('coldWater'),v:`${avg.toFixed(1)}° — ${I('coldWaterSuffix')}`,lv:avg<15?'bad':'warn'});
       }
     }
   }
@@ -842,70 +943,73 @@ async function loadAll(force=false){
     localStorage.setItem(CACHE_KEY,JSON.stringify({data,ts}));
     render(data,ts);
   }catch(e){
-    if(cached){try{const{data,ts}=JSON.parse(cached);render(data,ts,'⚠ מטמון');return}catch{}}
+    if(cached){try{const{data,ts}=JSON.parse(cached);render(data,ts,t('cacheNote'));return}catch{}}
     document.getElementById('main').innerHTML=`<div class="error">שגיאה: ${e.message}</div>`;
   }
 }
 
 function waveMetric(mh,i,showSurf){
+  const u=t('units');
   if(mh&&mh.wave_height?.[i]!=null){
     const wave=mh.wave_height[i],per=mh.wave_period?.[i],wdrM=mh.wave_direction?.[i];
     const val=wave<1?Math.round(wave*100):wave.toFixed(1);
-    const unit=wave<1?'ס״מ':'מ׳';
-    const head=showSurf&&wdrM!=null?`גלים ${dirArrow(wdrM)} ${dirText(wdrM)}`:'גלים';
-    const sub=showSurf&&per?`${waveTier(wave)} · ${per.toFixed(0)}שנ׳`:waveTier(wave);
+    const unit=wave<1?u.cm:u.m;
+    const head=showSurf&&wdrM!=null?`${t('metric.waves')} ${dirArrow(wdrM)} ${dirText(wdrM)}`:t('metric.waves');
+    const sub=showSurf&&per?`${waveTier(wave)} · ${per.toFixed(0)}${u.sec}`:waveTier(wave);
     return `<div class="metric wave ${waveCls(wave)}">
       <div class="m-head"><svg><use href="#i-wave"/></svg>${head}</div>
       <div class="m-val">${val}<span class="m-unit">${unit}</span></div>
       <div class="m-sub">${sub}</div>
     </div>`;
   }
-  return `<div class="metric"><div class="m-head"><svg><use href="#i-wave"/></svg>גלים</div><div class="m-val">—</div><div class="m-sub">לא זמין</div></div>`;
+  return `<div class="metric"><div class="m-head"><svg><use href="#i-wave"/></svg>${t('metric.waves')}</div><div class="m-val">—</div></div>`;
 }
 
 function uvMetric(uv,insights){
   const cls=uvCls(uv);
   const bm=burnMin(uv);
   const sub=insights&&insights.peakVal>uv+0.4
-    ?`${uvTier(uv)} · שיא ${insights.peakTime}`
-    :bm&&uv>=3?`${uvTier(uv)} · כוויה ${bm} דק׳`
+    ?`${uvTier(uv)} · ${t('peak')} ${insights.peakTime}`
+    :bm&&uv>=3?`${uvTier(uv)} · ${t('burnMin')} ${bm} ${t('burnSuffix')}`
     :uvTier(uv);
   return `<div class="metric uv ${cls}">
-    <div class="m-head"><svg><use href="#i-sun"/></svg>קרינה</div>
+    <div class="m-head"><svg><use href="#i-sun"/></svg>${t('metric.uv')}</div>
     <div class="m-val">${uv.toFixed(1)}<span class="m-unit">${uvIcon(uv)}</span></div>
     <div class="m-sub">${sub}</div>
   </div>`;
 }
 
 function waterMetric(sst){
-  if(sst==null)return `<div class="metric"><div class="m-head"><svg><use href="#i-water"/></svg>מים</div><div class="m-val">—</div></div>`;
-  const tier=sst>=25?'חמימים':sst>=22?'נעימים':sst>=19?'קרירים':sst>=16?'קרים':'קפואים';
+  if(sst==null)return `<div class="metric"><div class="m-head"><svg><use href="#i-water"/></svg>${t('metric.water')}</div><div class="m-val">—</div></div>`;
+  const tiers=t('waterTiers');
+  const tier=sst>=25?tiers[0]:sst>=22?tiers[1]:sst>=19?tiers[2]:sst>=16?tiers[3]:tiers[4];
   return `<div class="metric" style="--m-color:#5dade2">
-    <div class="m-head"><svg><use href="#i-water"/></svg>מים</div>
+    <div class="m-head"><svg><use href="#i-water"/></svg>${t('metric.water')}</div>
     <div class="m-val">${sst.toFixed(1)}<span class="m-unit">°</span></div>
     <div class="m-sub">${tier}</div>
   </div>`;
 }
 
 function windMetric(wind,gust,wdir,showSurf){
-  const head=showSurf?`רוח ${dirArrow(wdir)} ${dirText(wdir)}`:'רוח';
+  const head=showSurf?`${t('metric.wind')} ${dirArrow(wdir)} ${dirText(wdir)}`:t('metric.wind');
   return `<div class="metric ${windCls(wind)}" style="--m-color:var(--wn-color)">
     <div class="m-head"><svg><use href="#i-wind"/></svg>${head}</div>
-    <div class="m-val">${wind}<span class="m-unit">קמ"ש</span></div>
-    <div class="m-sub">${windTier(wind)} · פורצים ${gust}</div>
+    <div class="m-val">${wind}<span class="m-unit">${t('units.kmh')}</span></div>
+    <div class="m-sub">${windTier(wind)} · ${t('metric.gusts')} ${gust}</div>
   </div>`;
 }
 
 function wmoText(c){
-  if(c===0)return'שמיים בהירים';
-  if(c<=2)return'מעונן חלקית';
-  if(c===3)return'מעונן';
-  if(c===45||c===48)return'ערפל';
-  if(c>=51&&c<=57)return'טפטוף';
-  if(c>=61&&c<=67)return'גשם';
-  if(c>=71&&c<=77)return'שלג';
-  if(c>=80&&c<=82)return'ממטרים';
-  if(c>=95)return'סופת רעמים';
+  const w=t('wmoTexts');
+  if(c===0)return w[0];
+  if(c<=2)return w[1];
+  if(c===3)return w[3];
+  if(c===45||c===48)return w[45];
+  if(c>=51&&c<=57)return w.drizzle;
+  if(c>=61&&c<=67)return w.rain;
+  if(c>=71&&c<=77)return w.snow;
+  if(c>=80&&c<=82)return w.showers;
+  if(c>=95)return w.thunder;
   return'';
 }
 
@@ -937,9 +1041,9 @@ function surfHero(d,i){
   return `<div class="surf-hero ${scoreClass}">
     <div class="surf-top">
       <div class="surf-score-wrap">
-        <div class="surf-num">${sc!=null?sc.toFixed(1):'—'}<span class="surf-num-max">/10</span></div>
+        <div class="surf-num">${sc!=null?sc.toFixed(1):'—'}<span class="surf-num-max">${t('outOf')}</span></div>
         <div class="surf-meta">
-          <div class="surf-cap">${mode==='swim'?'ציון שחייה':mode==='sup'?'ציון סאפ':mode==='kayak'?'ציון קיאק':'ציון גלישה'}</div>
+          <div class="surf-cap">${t('score.'+mode)}</div>
           <div class="surf-label">${scoreLbl}</div>
         </div>
       </div>
@@ -947,8 +1051,8 @@ function surfHero(d,i){
     </div>
     <div class="surf-chips">
       ${ws?`<span class="s-chip"><span class="s-chip-i">${ws.icon}</span>${ws.txt}</span>`:''}
-      ${win&&win.hr!=null?`<span class="s-chip"><span class="s-chip-i">⏰</span>שיא ב-<b>${String(win.hr).padStart(2,'0')}:00</b></span>`:''}
-      ${mode==='surf'?`<span class="s-chip" style="--chip-color:${wt.color}"><span class="s-chip-i">${wt.icon}</span>רוח <b>${wt.label}</b></span>`:''}
+      ${win&&win.hr!=null?`<span class="s-chip"><span class="s-chip-i">⏰</span>${t('bestWindow')}<b>${String(win.hr).padStart(2,'0')}:00</b></span>`:''}
+      ${mode==='surf'?`<span class="s-chip" style="--chip-color:${wt.color}"><span class="s-chip-i">${wt.icon}</span>${t('metric.wind')} <b>${wt.label}</b></span>`:''}
     </div>
   </div>`;
 }
@@ -973,10 +1077,10 @@ function renderNow(d){
   return `<div class="card">
     <div class="card-head">
       <div>
-        <div class="spot-name">${spot.name}</div>
-        <div class="cond"><span>${wmoIcon(code,isDayHour(hr))}</span><span>${wmoText(code)} · ${temp}° אוויר</span></div>
+        <div class="spot-name">${spotName(spot)}</div>
+        <div class="cond"><span>${wmoIcon(code,isDayHour(hr))}</span><span>${wmoText(code)} · ${temp}° ${t('airSuffix')}</span></div>
       </div>
-      <div class="suntimes"><span>🌅 <b>${sunrise}</b></span><span>🌇 <b>${sunset}</b></span></div>
+      <div class="suntimes"><span>${t('metric.sunrise')} <b>${sunrise}</b></span><span>${t('metric.sunset')} <b>${sunset}</b></span></div>
     </div>
     ${surfHero(d,i)}
     ${renderInsights(d,0)}
@@ -1000,7 +1104,7 @@ function renderToday(d){
   const insights=uvInsights(wh.uv_index,wh.time,i);
   const sunrise=fmtT(wd.sunrise[dayIdx]),sunset=fmtT(wd.sunset[dayIdx]);
   const dt=new Date(wd.time[dayIdx]);
-  const dayLabel=isToday?'היום':dayIdx===1?'מחר':`${DAY_NAMES[dt.getDay()]}׳ ${dt.getDate()}/${dt.getMonth()+1}`;
+  const dayLabel=isToday?t('today'):dayIdx===1?t('tomorrow'):`${DAY_NAMES()[dt.getDay()]} ${dt.getDate()}/${dt.getMonth()+1}`;
 
   let hours='';
   const nowH=isToday?parseInt(wh.time[i].slice(11,13),10):-1;
@@ -1029,51 +1133,51 @@ function renderToday(d){
     </div>`;
   }
 
+  const u=t('units');
   let waveBox;
   if(md&&md.wave_height_max?.[dayIdx]!=null){
     const wm=md.wave_height_max[dayIdx],pm=md.wave_period_max?.[dayIdx],dm=md.wave_direction_dominant?.[dayIdx];
     const wv=wm<1?Math.round(wm*100):wm.toFixed(1);
-    const wu=wm<1?'ס״מ':'מ׳';
+    const wu=wm<1?u.cm:u.m;
     waveBox=`<div class="metric wave ${waveCls(wm)}">
-      <div class="m-head"><svg><use href="#i-wave"/></svg>גלים מקס׳${dm!=null?` ${dirArrow(dm)} ${dirText(dm)}`:''}</div>
+      <div class="m-head"><svg><use href="#i-wave"/></svg>${t('metric.wavesMax')}${dm!=null?` ${dirArrow(dm)} ${dirText(dm)}`:''}</div>
       <div class="m-val">${wv}<span class="m-unit">${wu}</span></div>
-      <div class="m-sub">${waveTier(wm)}${pm?` · עד ${pm.toFixed(0)}שנ׳`:''}</div>
+      <div class="m-sub">${waveTier(wm)}${pm?` · ${pm.toFixed(0)}${u.sec}`:''}</div>
     </div>`;
   }else{
-    waveBox=`<div class="metric"><div class="m-head"><svg><use href="#i-wave"/></svg>גלים</div><div class="m-val">—</div><div class="m-sub">לא זמין</div></div>`;
+    waveBox=`<div class="metric"><div class="m-head"><svg><use href="#i-wave"/></svg>${t('metric.waves')}</div><div class="m-val">—</div></div>`;
   }
 
   const uvBox=`<div class="metric uv ${uvCls(uvMax)}">
-    <div class="m-head"><svg><use href="#i-sun"/></svg>קרינה מקס׳</div>
+    <div class="m-head"><svg><use href="#i-sun"/></svg>${t('metric.uvMax')}</div>
     <div class="m-val">${uvMax.toFixed(1)}<span class="m-unit">${uvIcon(uvMax)}</span></div>
-    <div class="m-sub">${uvTier(uvMax)}${insights?.peakTime?` · שיא ${insights.peakTime}`:''}</div>
+    <div class="m-sub">${uvTier(uvMax)}${insights?.peakTime?` · ${t('peak')} ${insights.peakTime}`:''}</div>
   </div>`;
 
-  // ממוצע טמפ׳ מים ליום
   let sstAvg=null;
   if(mh?.sea_surface_temperature){
     const slice=mh.sea_surface_temperature.slice(dayStart,dayStart+24).filter(x=>x!=null);
     if(slice.length)sstAvg=slice.reduce((a,b)=>a+b,0)/slice.length;
   }
   const waterBox=sstAvg!=null
-    ?`<div class="metric" style="--m-color:#5dade2"><div class="m-head"><svg><use href="#i-water"/></svg>מים</div><div class="m-val">${sstAvg.toFixed(1)}<span class="m-unit">°</span></div><div class="m-sub">ממוצע יומי</div></div>`
-    :`<div class="metric"><div class="m-head"><svg><use href="#i-water"/></svg>מים</div><div class="m-val">—</div></div>`;
+    ?`<div class="metric" style="--m-color:#5dade2"><div class="m-head"><svg><use href="#i-water"/></svg>${t('metric.water')}</div><div class="m-val">${sstAvg.toFixed(1)}<span class="m-unit">°</span></div><div class="m-sub">${t('metric.avgDay')}</div></div>`
+    :`<div class="metric"><div class="m-head"><svg><use href="#i-water"/></svg>${t('metric.water')}</div><div class="m-val">—</div></div>`;
 
   const windBox=`<div class="metric ${windCls(windMax)}" style="--m-color:var(--wn-color)">
-    <div class="m-head"><svg><use href="#i-wind"/></svg>רוח מקס׳</div>
-    <div class="m-val">${windMax}<span class="m-unit">קמ"ש</span></div>
+    <div class="m-head"><svg><use href="#i-wind"/></svg>${t('metric.windMax')}</div>
+    <div class="m-val">${windMax}<span class="m-unit">${u.kmh}</span></div>
     <div class="m-sub">${windTier(windMax)}</div>
   </div>`;
 
-  const backBtn=!isToday?`<button class="day-back" data-back="1" aria-label="חזור להיום">→ חזור להיום</button>`:'';
+  const backBtn=!isToday?`<button class="day-back" data-back="1" aria-label="${t('backToday')}">${t('backToday')}</button>`:'';
 
   return `<div class="card">
     <div class="card-head">
       <div>
-        <div class="spot-name">${spot.name}</div>
+        <div class="spot-name">${spotName(spot)}</div>
         <div class="cond">${dayLabel} · ${tMax}°/${tMin}°${!isToday?` · ${wmoText(wd.weather_code?.[dayIdx]??1)}`:''}</div>
       </div>
-      <div class="suntimes"><span>🌅 <b>${sunrise}</b></span><span>🌇 <b>${sunset}</b></span></div>
+      <div class="suntimes"><span>${t('metric.sunrise')} <b>${sunrise}</b></span><span>${t('metric.sunset')} <b>${sunset}</b></span></div>
     </div>
     ${backBtn}
     ${renderInsights(d,dayIdx)}
@@ -1093,14 +1197,14 @@ function renderWeek(d){
   let days='';
   for(let i=0;i<7;i++){
     const date=new Date(wd.time[i]);
-    const dn=i===0?'היום':i===1?'מחר':DAY_NAMES[date.getDay()]+'׳';
+    const dn=i===0?t('today'):i===1?t('tomorrow'):DAY_NAMES()[date.getDay()];
     const dStr=`${date.getDate()}/${date.getMonth()+1}`;
     const tMax=Math.round(wd.temperature_2m_max[i]),tMin=Math.round(wd.temperature_2m_min[i]);
     const uvMax=wd.uv_index_max[i];
     const wMax=md?md.wave_height_max?.[i]:null;
     const code=wd.weather_code?.[i]??1;
     const waveStr=wMax!=null?fmtWaveShort(wMax):null;
-    days+=`<button class="day-btn" data-day="${i}" aria-label="פתח תחזית שעתית ל${dn} ${dStr}">
+    days+=`<button class="day-btn" data-day="${i}" aria-label="${dn} ${dStr}">
       <div class="day-namebox">
         <span class="day-name">${dn}</span>
         <span class="day-date">${dStr}</span>
@@ -1114,8 +1218,8 @@ function renderWeek(d){
   return `<div class="card">
     <div class="card-head">
       <div>
-        <div class="spot-name">${spot.name}</div>
-        <div class="cond">לחץ על יום לתחזית שעתית</div>
+        <div class="spot-name">${spotName(spot)}</div>
+        <div class="cond">${t('pressGuide')}</div>
       </div>
     </div>
     <div class="week-grid">${days}</div>
@@ -1125,11 +1229,13 @@ function renderWeek(d){
 function updateTodayTabLabel(data){
   const tab=document.querySelector('.tab[data-view="today"]');
   if(!tab)return;
-  if(selectedDay===0){tab.textContent='היום';return}
+  if(selectedDay===0){tab.textContent=t('today');return}
   const d=data.find(x=>x.spot.id===selectedSpot)||data[0];
   const dt=new Date(d.weather.daily.time[selectedDay]);
-  tab.textContent=selectedDay===1?'מחר':`${DAY_NAMES[dt.getDay()]}׳ ${dt.getDate()}/${dt.getMonth()+1}`;
+  tab.textContent=selectedDay===1?t('tomorrow'):`${DAY_NAMES()[dt.getDay()]} ${dt.getDate()}/${dt.getMonth()+1}`;
 }
+
+const spotName=s=>s[lang==='en'?'name_en':'name']||s.name;
 
 function render(data,ts,note){
   const view=document.querySelector('.tab.active').dataset.view;
@@ -1139,7 +1245,7 @@ function render(data,ts,note){
   updateTodayTabLabel(data);
   const dt=new Date(ts);
   const tStr=String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');
-  document.getElementById('updated').innerHTML=(note?note+'<br>':'')+'עודכן '+tStr;
+  document.getElementById('updated').innerHTML=(note?note+'<br>':'')+t('updated')+' '+tStr;
   const nowHr=document.querySelector('.hr.now');
   if(nowHr)nowHr.scrollIntoView({inline:'center',block:'nearest',behavior:'instant'});
 }
@@ -1147,12 +1253,13 @@ function render(data,ts,note){
 function buildSpotPicker(){
   const el=document.getElementById('spotPicker');
   el.setAttribute('role','tablist');
-  el.setAttribute('aria-label','בחירת חוף');
+  el.setAttribute('aria-label',t('spotPicker'));
   const items=SPOTS.map(s=>{
     const act=s.id===selectedSpot;
-    return `<button class="spot-btn${act?' active':''}" data-spot="${s.id}" role="tab" aria-selected="${act}" aria-label="חוף ${s.name}">${s.name}</button>`;
+    const nm=spotName(s);
+    return `<button class="spot-btn${act?' active':''}" data-spot="${s.id}" role="tab" aria-selected="${act}" aria-label="${nm}">${nm}</button>`;
   }).join('');
-  el.innerHTML=items+`<button class="spot-btn spot-edit" id="editBeaches" aria-label="הוסף או הסר חופים">＋ חופים</button>`;
+  el.innerHTML=items+`<button class="spot-btn spot-edit" id="editBeaches" aria-label="${t('editBeaches')}">${t('addBeaches')}</button>`;
 }
 
 function openBeachManager(){
@@ -1164,25 +1271,26 @@ function openBeachManager(){
   const selected=new Set(SPOTS.map(s=>s.id));
   const groups={};
   for(const b of ALL_BEACHES){(groups[b.region]=groups[b.region]||[]).push(b)}
+  const regions=t('regions');
   const body=Object.keys(groups).map(r=>`
     <div class="bm-section">
-      <div class="bm-region">${REGION_NAMES[r]}</div>
+      <div class="bm-region">${regions[r]||r}</div>
       ${groups[r].map(b=>`
         <label class="bm-row${selected.has(b.id)?' on':''}">
           <input type="checkbox" data-bid="${b.id}" ${selected.has(b.id)?'checked':''}>
-          <span class="bm-name">${b.name}</span>
+          <span class="bm-name">${spotName(b)}</span>
         </label>
       `).join('')}
     </div>
   `).join('');
   dlg.innerHTML=`
     <div class="bm-head">
-      <h2>חופים</h2>
-      <button class="bm-close" aria-label="סגור">✕</button>
+      <h2>${t('beachManager')}</h2>
+      <button class="bm-close" aria-label="${t('close')}">✕</button>
     </div>
     <div class="bm-body">${body}</div>
     <div class="bm-foot">
-      <button class="bm-save">שמור</button>
+      <button class="bm-save">${t('save')}</button>
     </div>`;
   document.body.appendChild(dlg);
   dlg.showModal();
@@ -1190,7 +1298,7 @@ function openBeachManager(){
     if(e.target===dlg||e.target.classList.contains('bm-close'))dlg.close();
     if(e.target.classList.contains('bm-save')){
       const ids=[...dlg.querySelectorAll('input:checked')].map(i=>i.dataset.bid);
-      if(!ids.length){alert('בחר לפחות חוף אחד');return}
+      if(!ids.length){alert(t('selectAtLeast'));return}
       saveSelectedSpotIds(ids);
       SPOTS=ids.map(id=>ALL_BEACHES.find(b=>b.id===id)).filter(Boolean);
       if(!SPOTS.find(s=>s.id===selectedSpot)){selectedSpot=SPOTS[0].id;localStorage.setItem(SPOT_KEY,selectedSpot)}
@@ -1213,7 +1321,31 @@ function renderFromCache(){
 function applyMode(){
   document.querySelectorAll('.mode-btn').forEach(b=>{
     b.setAttribute('aria-pressed',b.dataset.mode===mode);
+    b.innerHTML=t(b.dataset.mode);
   });
+}
+
+function applyLang(){
+  document.documentElement.lang=lang;
+  document.documentElement.dir=lang==='he'?'rtl':'ltr';
+  document.getElementById('appTitle').textContent=t('title');
+  document.getElementById('langLabel').textContent=lang==='he'?'EN':'עברית';
+  document.title=`${t('title')} — ${t('subtitle')}`;
+  document.querySelector('header h1').setAttribute('aria-label',t('title'));
+  document.getElementById('refresh').setAttribute('aria-label',t('refresh'));
+  // Tabs
+  const tabs=document.querySelectorAll('.tab');
+  if(tabs[0])tabs[0].textContent=t('now');
+  if(tabs[1])tabs[1].textContent=t('today');
+  if(tabs[2])tabs[2].textContent=t('week');
+  document.getElementById('tabs').setAttribute('aria-label',t('tabRange'));
+  // Mode toggle
+  document.querySelector('.mode-toggle').setAttribute('aria-label',t('modePicker'));
+  // Loading text
+  const loading=document.querySelector('.loading');
+  if(loading)loading.textContent=t('loading');
+  applyMode();
+  buildSpotPicker();
 }
 
 document.querySelectorAll('.mode-btn').forEach(b=>{
@@ -1223,6 +1355,13 @@ document.querySelectorAll('.mode-btn').forEach(b=>{
     applyMode();
     renderFromCache();
   });
+});
+
+document.getElementById('langBtn').addEventListener('click',()=>{
+  lang=lang==='he'?'en':'he';
+  localStorage.setItem(LANG_KEY,lang);
+  applyLang();
+  renderFromCache();
 });
 
 document.getElementById('spotPicker').addEventListener('click',e=>{
@@ -1276,8 +1415,7 @@ document.addEventListener('touchmove',e=>{
 },{passive:true});
 document.addEventListener('touchend',()=>{pulling=false});
 
-buildSpotPicker();
-applyMode();
+applyLang();
 loadAll();
 setInterval(()=>loadAll(),30*60*1000);
 if('serviceWorker' in navigator){
