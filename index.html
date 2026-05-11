@@ -63,6 +63,27 @@
 }
 .s-chip b{color:var(--chip-color,var(--accent));font-weight:700}
 .s-chip-i{font-size:13px;line-height:1}
+
+/* === Smart Insights Panel === */
+.insights{
+  background:var(--card);border:.5px solid var(--border);
+  border-radius:16px;padding:6px;margin-bottom:12px;
+  display:flex;flex-direction:column;gap:4px;
+}
+.ins{
+  display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:10px;
+  padding:10px 12px;background:var(--card-2);border-radius:11px;
+  border:.5px solid transparent;
+}
+.ins.lv-good{border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.07)}
+.ins.lv-ok{border-color:rgba(93,173,226,.25);background:rgba(93,173,226,.06)}
+.ins.lv-warn{border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.07)}
+.ins.lv-bad{border-color:rgba(248,113,113,.35);background:rgba(248,113,113,.08)}
+.ins.lv-cold{border-color:rgba(125,211,252,.3);background:rgba(125,211,252,.07)}
+.ins-i{font-size:18px;text-align:center;line-height:1}
+.ins-k{font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.3px;text-transform:uppercase;line-height:1.1}
+.ins-v{font-size:14px;font-weight:600;color:var(--text);line-height:1.25;margin-top:2px}
+.ins-text{display:flex;flex-direction:column}
 *:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:var(--bg-1)}
@@ -366,6 +387,7 @@ main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
   <button class="mode-btn" data-mode="swim" aria-pressed="true">🏊 שחייה</button>
   <button class="mode-btn" data-mode="sup" aria-pressed="false">🛶 סאפ</button>
   <button class="mode-btn" data-mode="surf" aria-pressed="false">🏄 גלישה</button>
+  <button class="mode-btn" data-mode="kite" aria-pressed="false">🪁 קייט</button>
 </div>
 
 <nav class="tabs" id="tabs" role="tablist" aria-label="טווח תחזית">
@@ -521,10 +543,52 @@ function supScore(waveH,windSpd,sst){
   return Math.round(total*10)/10;
 }
 
-function score(mode,waveH,wavePer,windSpd,windDir,facing,sst){
+// ציון קייט 0-10 — תלוי קריטית ברוח (טווח + יציבות + כיוון)
+// 1km/h ≈ 0.54 knots. טווח קייט: ~22-55 km/h (12-30 knots)
+function kiteScore(windSpd,gust,windDir,facing){
+  // טווח עוצמה: <22 חלש, 22-30 בסיסי, 30-45 אופטימלי, 45-55 חזק, >55 מסוכן
+  const sScore=windSpd<15?.05:windSpd<22?.35:windSpd<30?.75:windSpd<45?1:windSpd<55?.7:.25;
+  // יציבות — פער בין פורצים לעוצמה
+  const gustDiff=gust&&windSpd?Math.max(0,gust-windSpd):0;
+  const stab=gustDiff<6?1:gustDiff<12?.75:gustDiff<18?.45:.2;
+  // כיוון: side-shore=הכי טוב, on-shore=בטוח, off-shore=מסוכן (סטייה ממול לים)
+  const off=(facing+180)%360;
+  let diff=Math.abs(windDir-off);if(diff>180)diff=360-diff;
+  // diff קרוב ל-180 = onshore (טוב), 90 = side-shore (מצוין), 0 = offshore (מסוכן)
+  let dScore;
+  if(diff<=30)dScore=0;        // offshore — מסוכן!
+  else if(diff<=60)dScore=.35; // cross-off
+  else if(diff<=120)dScore=1;  // side-shore — הכי טוב
+  else dScore=.7;              // onshore — בטוח
+  const total=(sScore*.5+dScore*.35+stab*.15)*10;
+  return Math.round(total*10)/10;
+}
+
+function score(mode,waveH,wavePer,windSpd,windDir,facing,sst,gust){
   if(mode==='surf')return surfScore(waveH,wavePer,windSpd,windDir,facing);
   if(mode==='sup')return supScore(waveH,windSpd,sst);
+  if(mode==='kite')return kiteScore(windSpd,gust,windDir,facing);
   return swimScore(waveH,windSpd,sst);
+}
+
+// גודל קייט מומלץ לפי עוצמת רוח ומשקל ממוצע (~75 ק"ג)
+function kiteSize(windSpd){
+  if(windSpd<18)return null;
+  if(windSpd<25)return'14-17מ²';
+  if(windSpd<32)return'11-13מ²';
+  if(windSpd<42)return'8-10מ²';
+  if(windSpd<52)return'6-8מ²';
+  return'5מ² ומטה';
+}
+
+// סוג רוח לקייט (offshore = מסוכן!)
+function kiteWindType(windDir,facing){
+  const off=(facing+180)%360;
+  let diff=Math.abs(windDir-off);if(diff>180)diff=360-diff;
+  if(diff<=30)return{label:'יבשתית - מסוכן!',color:'#f87171',icon:'⚠️'};
+  if(diff<=60)return{label:'חצי יבשתית',color:'#fbbf24',icon:'◑'};
+  if(diff<=120)return{label:'צידית - אידיאלי',color:'#4ade80',icon:'✨'};
+  return{label:'ימית - בטוחה',color:'#a3e635',icon:'◐'};
 }
 const scoreCls=s=>s<2?'sc-1':s<4?'sc-2':s<6?'sc-3':s<8?'sc-4':'sc-5';
 const scoreLabel=s=>s<2?'גרוע':s<4?'חלש':s<6?'בסדר':s<8?'טוב':'מצוין';
@@ -548,6 +612,14 @@ function wetsuit(t,mode){
     if(t>=15)return{txt:'חליפה 3/2',icon:'🤿'};
     return{txt:'חליפה 4/3',icon:'🥶'};
   }
+  if(mode==='kite'){
+    // קייט בלבוש שמתאים לקור הרוח. אדפטיבי לקייטרים
+    if(t>=24)return{txt:'בגד ים + ראש',icon:'🩳'};
+    if(t>=21)return{txt:'ליקרה + שורטי',icon:'👕'};
+    if(t>=18)return{txt:'חליפה 3/2 + רתמה',icon:'🤿'};
+    if(t>=15)return{txt:'חליפה 4/3 + כובע',icon:'🧢'};
+    return{txt:'חליפה 5/4 + כפפות',icon:'🥶'};
+  }
   // surf
   if(t>=24)return{txt:'בגד ים',icon:'🩳'};
   if(t>=22)return{txt:'ליקרה/ספרינג',icon:'👕'};
@@ -564,10 +636,146 @@ function bestWindow(d,dayIdx,mode){
   for(let i=start;i<end;i++){
     const h=parseInt(wh.time[i].slice(11,13),10);
     if(h<5||h>20)continue;
-    const s=score(mode,mh?.wave_height?.[i],mh?.wave_period?.[i],wh.wind_speed_10m[i],wh.wind_direction_10m[i],d.spot.facing,mh?.sea_surface_temperature?.[i]);
+    const s=score(mode,mh?.wave_height?.[i],mh?.wave_period?.[i],wh.wind_speed_10m[i],wh.wind_direction_10m[i],d.spot.facing,mh?.sea_surface_temperature?.[i],wh.wind_gusts_10m[i]);
     if(s!=null&&s>best.score){best={score:s,hr:h,idx:i}}
   }
   return best.hr!=null?best:null;
+}
+
+const pad2=h=>String(h).padStart(2,'0');
+
+// חלון רציף הכי ארוך עם תנאי מסוים
+function findRange(wh,mh,start,end,cond){
+  let bestS=-1,bestL=0,cs=-1,cl=0;
+  for(let i=start;i<end;i++){
+    const h=parseInt(wh.time[i].slice(11,13),10);
+    if(h<6||h>19){cs=-1;cl=0;continue}
+    if(cond(i,h,wh,mh)){
+      if(cs<0)cs=h;cl++;
+      if(cl>bestL){bestL=cl;bestS=cs}
+    }else{cs=-1;cl=0}
+  }
+  return bestS>=0?{from:bestS,to:bestS+bestL,hours:bestL}:null;
+}
+
+// תובנות חכמות לכל ספורט ליום הנבחר
+function modeInsights(mode,d,dayIdx){
+  const wh=d.weather.hourly,mh=d.marine?.hourly,wd=d.weather.daily;
+  const facing=d.spot.facing;
+  const start=dayIdx*24,end=Math.min(start+24,wh.time.length);
+  const items=[];
+
+  if(mode==='swim'){
+    // חלון מים שקטים
+    const calm=findRange(wh,mh,start,end,(i)=>{
+      const w=mh?.wave_height?.[i];return (w==null||w<.4)&&wh.wind_speed_10m[i]<12;
+    });
+    if(calm)items.push({i:'🌊',k:'חלון שקט',v:`${pad2(calm.from)}-${pad2(calm.to)} (${calm.hours}ש׳)`,lv:'good'});
+    else items.push({i:'⚠️',k:'מצב הים',v:'גלי או רוחי כל היום',lv:'warn'});
+
+    // טמפ׳ מים ממוצעת
+    if(mh?.sea_surface_temperature){
+      const arr=mh.sea_surface_temperature.slice(start,end).filter(x=>x!=null);
+      if(arr.length){
+        const avg=arr.reduce((a,b)=>a+b,0)/arr.length;
+        const dur=avg>=24?'ללא הגבלה':avg>=21?'ארוכה':avg>=18?'30-60 דק׳':avg>=15?'15-30 דק׳':'קצרה - היזהר';
+        items.push({i:'💧',k:'מים',v:`${avg.toFixed(1)}° · משך ${dur}`,lv:avg>=21?'good':avg>=18?'ok':'cold'});
+      }
+    }
+    // UV ושעת שיא
+    const uvMax=wd.uv_index_max[dayIdx];
+    if(uvMax>=3){
+      const bm=burnMin(uvMax);
+      items.push({i:'☀️',k:'קרינה',v:`UV ${uvMax.toFixed(0)} · כוויה ${bm} דק׳`,lv:uvMax>=8?'bad':uvMax>=6?'warn':'ok'});
+    }
+    // שעת זריחה
+    items.push({i:'🌅',k:'שחיית שחר',v:fmtT(wd.sunrise[dayIdx]),lv:'good'});
+  }
+
+  if(mode==='sup'){
+    // חלון רוח חלשה
+    const calm=findRange(wh,mh,start,end,(i)=>wh.wind_speed_10m[i]<12);
+    if(calm)items.push({i:'🪶',k:'חלון רוח חלשה',v:`${pad2(calm.from)}-${pad2(calm.to)} (${calm.hours}ש׳)`,lv:'good'});
+    // עוצמת רוח מקס׳
+    const wMax=Math.round(wd.wind_speed_10m_max[dayIdx]);
+    items.push({i:'💨',k:'רוח מקס׳',v:`${wMax} קמ"ש · ${windTier(wMax)}`,lv:wMax<15?'good':wMax<22?'warn':'bad'});
+    // אזהרת רוח יבשתית (סאפ — מסוכן!)
+    const i=dayIdx===0?nowIdx(wh.time):start;
+    const wt=windType(wh.wind_direction_10m[i],facing);
+    if(wt.type==='offshore'||wt.type==='cross-off'){
+      items.push({i:'⚠️',k:'רוח יבשתית',v:'סיכון להיסחף לים — חבר חברה',lv:'bad'});
+    }else{
+      items.push({i:'✓',k:'כיוון רוח',v:wt.label+' · בטוח',lv:'good'});
+    }
+    // גלים מקס׳
+    if(mh?.wave_height){
+      const arr=mh.wave_height.slice(start,end).filter(x=>x!=null);
+      if(arr.length){const max=Math.max(...arr);items.push({i:'🌊',k:'גלים מקס׳',v:fmtWaveShort(max),lv:max<.5?'good':max<.8?'ok':'warn'});}
+    }
+  }
+
+  if(mode==='surf'){
+    // חלון offshore
+    const offshore=findRange(wh,mh,start,end,(i)=>{
+      const wt=windType(wh.wind_direction_10m[i],facing);
+      return (wt.type==='offshore'||wt.type==='cross-off')&&wh.wind_speed_10m[i]<25;
+    });
+    if(offshore)items.push({i:'✨',k:'חלון רוח יבשתית',v:`${pad2(offshore.from)}-${pad2(offshore.to)} (${offshore.hours}ש׳)`,lv:'good'});
+    else items.push({i:'⚠️',k:'רוח',v:'אין offshore היום',lv:'warn'});
+
+    // מחזור גלים
+    if(mh?.wave_period){
+      const arr=mh.wave_period.slice(start,end).filter(x=>x!=null);
+      if(arr.length){
+        const max=Math.max(...arr);
+        const q=max<6?'wind chop':max<9?'מעורב':max<12?'groundswell':'groundswell ארוך';
+        items.push({i:'⏱️',k:'מחזור מקס׳',v:`${max.toFixed(0)} שנ׳ · ${q}`,lv:max<6?'bad':max<9?'ok':'good'});
+      }
+    }
+    // גובה מקס׳
+    if(mh?.wave_height){
+      const arr=mh.wave_height.slice(start,end).filter(x=>x!=null);
+      if(arr.length){
+        const max=Math.max(...arr);
+        items.push({i:'🌊',k:'גובה מקס׳',v:fmtWaveShort(max),lv:max>=.7?'good':max>=.4?'ok':'warn'});
+      }
+    }
+    // כיוון גלים
+    if(mh?.wave_direction){
+      const arr=mh.wave_direction.slice(start,end).filter(x=>x!=null);
+      if(arr.length){
+        const dir=arr[Math.floor(arr.length/2)];
+        items.push({i:'🧭',k:'כיוון גלים',v:`${dirText(dir)} (${Math.round(dir)}°)`,lv:'ok'});
+      }
+    }
+  }
+
+  if(mode==='kite'){
+    // חלון רוח בטווח קייט
+    const range=findRange(wh,mh,start,end,(i)=>{
+      const w=wh.wind_speed_10m[i];return w>=22&&w<=55;
+    });
+    if(range)items.push({i:'🪁',k:'חלון רוח קייט',v:`${pad2(range.from)}-${pad2(range.to)} (${range.hours}ש׳)`,lv:'good'});
+    else items.push({i:'⚠️',k:'רוח',v:'מחוץ לטווח קייט היום',lv:'warn'});
+
+    // עוצמת רוח מקס׳ + גודל קייט
+    const wMax=Math.round(wd.wind_speed_10m_max[dayIdx]);
+    const ksize=kiteSize(wMax);
+    items.push({i:'💨',k:'רוח מקס׳',v:`${wMax} קמ"ש${ksize?` · ${ksize}`:''}`,lv:wMax>=22&&wMax<=50?'good':wMax<22?'warn':'bad'});
+
+    // אזהרת offshore (מסוכן!)
+    const i=dayIdx===0?nowIdx(wh.time):start;
+    const kwt=kiteWindType(wh.wind_direction_10m[i],facing);
+    const lv=kwt.label.includes('מסוכן')?'bad':kwt.label.includes('אידיאלי')||kwt.label.includes('בטוחה')?'good':'warn';
+    items.push({i:kwt.icon,k:'כיוון רוח',v:kwt.label,lv});
+
+    // יציבות (פער פורצים-רוח)
+    const i2=dayIdx===0?nowIdx(wh.time):start;
+    const gd=Math.max(0,Math.round(wh.wind_gusts_10m[i2]-wh.wind_speed_10m[i2]));
+    items.push({i:'📊',k:'יציבות',v:`פער פורצים ${gd} קמ"ש · ${gd<8?'יציבה':gd<15?'משתנה':'gusty'}`,lv:gd<8?'good':gd<15?'ok':'warn'});
+  }
+
+  return items;
 }
 function wmoIcon(c,isDay=true){
   if(c===0)return isDay?'☀️':'🌙';
@@ -692,6 +900,16 @@ function wmoText(c){
   return'';
 }
 
+function renderInsights(d,dayIdx){
+  const items=modeInsights(mode,d,dayIdx);
+  if(!items.length)return'';
+  return `<div class="insights">${items.map(x=>`
+    <div class="ins lv-${x.lv}">
+      <div class="ins-i">${x.i}</div>
+      <div class="ins-text"><div class="ins-k">${x.k}</div><div class="ins-v">${x.v}</div></div>
+    </div>`).join('')}</div>`;
+}
+
 function surfHero(d,i){
   const{spot,weather,marine}=d;
   const wh=weather.hourly;const mh=marine?.hourly;
@@ -752,6 +970,7 @@ function renderNow(d){
       <div class="suntimes"><span>🌅 <b>${sunrise}</b></span><span>🌇 <b>${sunset}</b></span></div>
     </div>
     ${surfHero(d,i)}
+    ${renderInsights(d,0)}
     <div class="grid4">
       ${waveMetric(mh,i,showSurf)}
       ${waterMetric(sst)}
@@ -848,6 +1067,7 @@ function renderToday(d){
       <div class="suntimes"><span>🌅 <b>${sunrise}</b></span><span>🌇 <b>${sunset}</b></span></div>
     </div>
     ${backBtn}
+    ${renderInsights(d,dayIdx)}
     <div class="grid4">
       ${waveBox}
       ${waterBox}
