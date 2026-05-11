@@ -22,7 +22,10 @@
   --shadow:0 8px 32px rgba(0,0,0,.35);
   --uv-1:#76d275; --uv-2:#ffd54f; --uv-3:#ff9800; --uv-4:#f44336; --uv-5:#9c27b0;
   --wv-1:#76d275; --wv-2:#5dade2; --wv-3:#ffd54f; --wv-4:#ff9800; --wv-5:#f44336;
+  --wn-1:#7fc3ff; --wn-2:#76d275; --wn-3:#ffd54f; --wn-4:#ff9800; --wn-5:#f44336;
 }
+.wn-l{--wn-color:var(--wn-1)} .wn-m{--wn-color:var(--wn-2)}
+.wn-h{--wn-color:var(--wn-3)} .wn-v{--wn-color:var(--wn-4)} .wn-x{--wn-color:var(--wn-5)}
 *:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:var(--bg-1)}
@@ -135,18 +138,36 @@ main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
   margin-inline-start:5px;font-size:12px;
 }
 
-/* === תחזית === */
-.forecast{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;margin-top:12px;padding-bottom:3px}
-.forecast::-webkit-scrollbar{display:none}
-.day{
-  flex:0 0 auto;
+/* === שבוע === */
+.week-grid{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.day-btn{
+  width:100%;display:grid;
+  grid-template-columns:60px 38px 1fr auto auto;align-items:center;gap:10px;
+  padding:13px 14px;
   background:var(--card-2);border:.5px solid var(--border);
-  border-radius:13px;padding:10px 9px;min-width:76px;text-align:center;
+  border-radius:14px;color:var(--text);font-family:inherit;
+  cursor:pointer;text-align:right;transition:all .15s;
 }
-.day-name{font-size:11px;color:var(--text-3);margin-bottom:6px;font-weight:600}
-.day-main{font-size:17px;font-weight:700;letter-spacing:-.3px;margin-bottom:3px;line-height:1.1}
-.day-sub{font-size:11px;color:var(--text-2);line-height:1.3}
-.day-uv{display:inline-block;margin-top:5px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:rgba(0,0,0,.3)}
+.day-btn:hover,.day-btn:focus-visible{background:rgba(255,255,255,.09);border-color:rgba(93,173,226,.4)}
+.day-btn:active{transform:scale(.98)}
+.day-name{font-size:14px;font-weight:700;color:var(--text)}
+.day-ico{font-size:24px;text-align:center;line-height:1}
+.day-temp{font-size:17px;font-weight:700;letter-spacing:-.3px}
+.day-temp-min{font-size:13px;font-weight:600;color:var(--text-2);margin-right:3px}
+.day-wave{font-size:12.5px;font-weight:600;white-space:nowrap}
+.day-wave.dim{color:var(--text-3);opacity:.5}
+.day-uv{font-size:11px;font-weight:700;padding:3px 8px;border-radius:7px;background:rgba(0,0,0,.3);white-space:nowrap}
+
+.day-back{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:7px 13px;margin-bottom:12px;
+  background:var(--card-2);border:.5px solid var(--border);
+  color:var(--accent);border-radius:18px;
+  font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;
+  transition:all .15s;
+}
+.day-back:hover{background:rgba(93,173,226,.15)}
+.day-back:active{transform:scale(.96)}
 
 /* === שעות סגנון Google === */
 .hourly{
@@ -180,7 +201,11 @@ main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
   display:flex;align-items:center;gap:2px;min-height:11px;
 }
 .hr-pop.dim{opacity:0}
-.hr-wind{font-size:10px;color:var(--text-3);font-weight:500;line-height:1.1}
+.hr-wind{
+  font-size:10.5px;font-weight:600;line-height:1.15;
+  color:var(--wn-color,var(--text-2));
+  display:flex;align-items:center;gap:3px;
+}
 
 .loading,.error{text-align:center;padding:50px 20px;color:var(--text-3);font-size:14px}
 .error{color:#ff9180}
@@ -247,9 +272,10 @@ const SPOTS=[
   {id:'telaviv',name:'תל אביב',lat:32.0853,lon:34.7656,sea:'med'},
   {id:'eilat',name:'אילת',lat:29.5377,lon:34.9519,sea:'red'}
 ];
-const CACHE_KEY='beachData_v6',CACHE_TTL=30*60*1000;
+const CACHE_KEY='beachData_v7',CACHE_TTL=30*60*1000;
 const SPOT_KEY='beachSelectedSpot';
 let selectedSpot=localStorage.getItem(SPOT_KEY)||'nahsholim';
+let selectedDay=0; // index 0..6 (היום=0)
 const DIRS=['צ','צ-מז','מז','ד-מז','ד','ד-מע','מע','צ-מע'];
 const DAY_NAMES=['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
 
@@ -263,7 +289,12 @@ const uvAdvice=v=>v<3?{spf:'ללא הגנה',gear:''}:v<6?{spf:'SPF 30',gear:'כ
 const burnMin=v=>v>0?Math.round(200/v):null; // skin type II-III
 const waveCls=h=>h<.3?'wv-l':h<.7?'wv-m':h<1.2?'wv-h':h<2?'wv-x':'wv-xx';
 const waveTier=h=>h<.3?'שטוח':h<.7?'קטן':h<1.2?'בינוני':h<2?'גדול':'ענק';
+const fmtWave=h=>h<1?`${Math.round(h*100)} ס"מ`:`${h.toFixed(1)} מ׳`;
+const fmtWaveShort=h=>h<1?`${Math.round(h*100)}ס״מ`:`${h.toFixed(1)}מ׳`;
 const windTier=s=>s<10?'חלש':s<20?'בינוני':s<30?'חזק':s<40?'חזק מאוד':'סוער';
+const windCls=s=>s<10?'wn-l':s<20?'wn-m':s<30?'wn-h':s<40?'wn-v':'wn-x';
+const windIcon=s=>s<10?'🍃':s<20?'💨':s<30?'🌬️':s<40?'🌪️':'⚠️';
+const dirArrowSm=d=>`<span style="display:inline-block;color:var(--wn-color,var(--accent));transform:rotate(${(d+180)%360}deg);font-size:11px;line-height:1">↑</span>`;
 function wmoIcon(c,isDay=true){
   if(c===0)return isDay?'☀️':'🌙';
   if(c<=2)return isDay?'🌤️':'🌙';
@@ -300,12 +331,12 @@ function uvInsights(uvArr,times,idx){
 
 async function fetchSpot(spot){
   const wUrl=`https://api.open-meteo.com/v1/forecast?latitude=${spot.lat}&longitude=${spot.lon}&hourly=temperature_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,uv_index,weather_code,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,uv_index_max,wind_speed_10m_max,weather_code,sunrise,sunset&timezone=Asia/Jerusalem&forecast_days=7&wind_speed_unit=kmh`;
-  const reqs=[fetch(wUrl).then(r=>r.json())];
-  if(spot.sea==='med'){
-    const mUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${spot.lat}&longitude=${spot.lon}&hourly=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_period,sea_surface_temperature&daily=wave_height_max,wave_direction_dominant,wave_period_max&timezone=Asia/Jerusalem&forecast_days=7`;
-    reqs.push(fetch(mUrl).then(r=>r.json()));
-  }
-  const[weather,marine]=await Promise.all(reqs);
+  const model=spot.sea==='red'?'&models=gwam':'';
+  const mUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${spot.lat}&longitude=${spot.lon}&hourly=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_period,sea_surface_temperature&daily=wave_height_max,wave_direction_dominant,wave_period_max&timezone=Asia/Jerusalem&forecast_days=7${model}`;
+  const[weather,marine]=await Promise.all([
+    fetch(wUrl).then(r=>r.json()),
+    fetch(mUrl).then(r=>r.ok?r.json():null).catch(()=>null)
+  ]);
   return{spot,weather,marine:marine||null};
 }
 
@@ -326,15 +357,17 @@ async function loadAll(force=false){
 }
 
 function waveMetric(mh,i){
-  if(mh&&mh.wave_height[i]!=null){
-    const wave=mh.wave_height[i],per=mh.wave_period[i],wdrM=mh.wave_direction[i];
+  if(mh&&mh.wave_height?.[i]!=null){
+    const wave=mh.wave_height[i],per=mh.wave_period?.[i],wdrM=mh.wave_direction?.[i];
+    const val=wave<1?Math.round(wave*100):wave.toFixed(1);
+    const unit=wave<1?'ס״מ':'מ׳';
     return `<div class="metric wave ${waveCls(wave)}">
-      <div class="m-head"><svg><use href="#i-wave"/></svg>גלים ${dirArrow(wdrM)} ${dirText(wdrM)}</div>
-      <div class="m-val">${wave.toFixed(1)}<span class="m-unit">מ׳</span></div>
-      <div class="m-sub">${waveTier(wave)} · ${per?per.toFixed(0):'?'}שנ׳</div>
+      <div class="m-head"><svg><use href="#i-wave"/></svg>גלים${wdrM!=null?` ${dirArrow(wdrM)} ${dirText(wdrM)}`:''}</div>
+      <div class="m-val">${val}<span class="m-unit">${unit}</span></div>
+      <div class="m-sub">${waveTier(wave)}${per?` · ${per.toFixed(0)}שנ׳`:''}</div>
     </div>`;
   }
-  return `<div class="metric"><div class="m-head"><svg><use href="#i-wave"/></svg>גלים</div><div class="m-val">—</div><div class="m-sub">מפרץ — זניחים</div></div>`;
+  return `<div class="metric"><div class="m-head"><svg><use href="#i-wave"/></svg>גלים</div><div class="m-val">—</div><div class="m-sub">לא זמין</div></div>`;
 }
 
 function uvMetric(uv,insights){
@@ -360,9 +393,9 @@ function tempMetric(t,sst){
 }
 
 function windMetric(wind,gust,wdir){
-  return `<div class="metric">
+  return `<div class="metric ${windCls(wind)}" style="--m-color:var(--wn-color)">
     <div class="m-head"><svg><use href="#i-wind"/></svg>רוח ${dirArrow(wdir)} ${dirText(wdir)}</div>
-    <div class="m-val">${wind}<span class="m-unit">קמ"ש</span></div>
+    <div class="m-val">${wind}<span class="m-unit">${windIcon(wind)} קמ"ש</span></div>
     <div class="m-sub">${windTier(wind)} · פורצים ${gust}</div>
   </div>`;
 }
@@ -416,43 +449,52 @@ function renderNow(d){
 function renderToday(d){
   const{spot,weather,marine}=d;
   const wh=weather.hourly,wd=weather.daily,md=marine?.daily;
-  const i=nowIdx(wh.time);
-  const tMax=Math.round(wd.temperature_2m_max[0]),tMin=Math.round(wd.temperature_2m_min[0]);
-  const uvMax=wd.uv_index_max[0],windMax=Math.round(wd.wind_speed_10m_max[0]);
+  const dayIdx=Math.min(selectedDay,wd.time.length-1);
+  const isToday=dayIdx===0;
+  const i=isToday?nowIdx(wh.time):dayIdx*24;
+  const tMax=Math.round(wd.temperature_2m_max[dayIdx]),tMin=Math.round(wd.temperature_2m_min[dayIdx]);
+  const uvMax=wd.uv_index_max[dayIdx],windMax=Math.round(wd.wind_speed_10m_max[dayIdx]);
   const insights=uvInsights(wh.uv_index,wh.time,i);
-  const sunrise=fmtT(wd.sunrise[0]),sunset=fmtT(wd.sunset[0]);
+  const sunrise=fmtT(wd.sunrise[dayIdx]),sunset=fmtT(wd.sunset[dayIdx]);
+  const dt=new Date(wd.time[dayIdx]);
+  const dayLabel=isToday?'היום':dayIdx===1?'מחר':`${DAY_NAMES[dt.getDay()]}׳ ${dt.getDate()}/${dt.getMonth()+1}`;
 
   let hours='';
-  const nowH=parseInt(wh.time[i].slice(11,13),10);
+  const nowH=isToday?parseInt(wh.time[i].slice(11,13),10):-1;
   const mh=marine?.hourly;
+  const dayStart=dayIdx*24;
   for(let h=0;h<24;h++){
-    const idx=i-(i%24)+h;if(idx<0||idx>=wh.time.length)continue;
+    const idx=dayStart+h;if(idx<0||idx>=wh.time.length)continue;
     const hh=parseInt(wh.time[idx].slice(11,13),10);
     const code=wh.weather_code?.[idx]??1;
     const pop=wh.precipitation_probability?.[idx]??0;
     const uvH=wh.uv_index[idx]??0;
     const wave=mh?.wave_height?.[idx];
+    const wSpd=Math.round(wh.wind_speed_10m[idx]);
+    const wDir=wh.wind_direction_10m[idx];
     const isNow=hh===nowH;
-    hours+=`<div class="hr${isNow?' now':''}">
+    hours+=`<div class="hr${isNow?' now':''} ${windCls(wSpd)}">
       <div class="hr-time">${isNow?'עכשיו':String(hh).padStart(2,'0')}</div>
       <div class="hr-icon">${wmoIcon(code,isDayHour(hh))}</div>
       <div class="hr-temprow">
         <span class="hr-temp">${Math.round(wh.temperature_2m[idx])}°</span>
         ${uvH>=1?`<span class="hr-uv ${uvCls(uvH)}">UV ${uvH.toFixed(0)}</span>`:''}
       </div>
-      <div class="hr-wave${wave==null?' dim':' '+waveCls(wave)}">${wave!=null?`🌊 ${wave.toFixed(1)}מ׳`:'—'}</div>
-      <div class="hr-wind">💨 ${Math.round(wh.wind_speed_10m[idx])} קמ"ש</div>
+      <div class="hr-wave${wave==null?' dim':' '+waveCls(wave)}">${wave!=null?`🌊 ${fmtWaveShort(wave)}`:'—'}</div>
+      <div class="hr-wind">${windIcon(wSpd)} ${dirArrowSm(wDir)} ${dirText(wDir)} ${wSpd}</div>
       <div class="hr-pop${pop<10?' dim':''}">💧${pop}%</div>
     </div>`;
   }
 
   let waveBox;
-  if(md&&md.wave_height_max[0]!=null){
-    const wm=md.wave_height_max[0],pm=md.wave_period_max[0],dm=md.wave_direction_dominant[0];
+  if(md&&md.wave_height_max?.[dayIdx]!=null){
+    const wm=md.wave_height_max[dayIdx],pm=md.wave_period_max?.[dayIdx],dm=md.wave_direction_dominant?.[dayIdx];
+    const wv=wm<1?Math.round(wm*100):wm.toFixed(1);
+    const wu=wm<1?'ס״מ':'מ׳';
     waveBox=`<div class="metric wave ${waveCls(wm)}">
-      <div class="m-head"><svg><use href="#i-wave"/></svg>גלים מקס׳ ${dirArrow(dm)} ${dirText(dm)}</div>
-      <div class="m-val">${wm.toFixed(1)}<span class="m-unit">מ׳</span></div>
-      <div class="m-sub">${waveTier(wm)} · עד ${pm?pm.toFixed(0):'?'}שנ׳</div>
+      <div class="m-head"><svg><use href="#i-wave"/></svg>גלים מקס׳${dm!=null?` ${dirArrow(dm)} ${dirText(dm)}`:''}</div>
+      <div class="m-val">${wv}<span class="m-unit">${wu}</span></div>
+      <div class="m-sub">${waveTier(wm)}${pm?` · עד ${pm.toFixed(0)}שנ׳`:''}</div>
     </div>`;
   }else{
     waveBox=`<div class="metric"><div class="m-head"><svg><use href="#i-wave"/></svg>גלים</div><div class="m-val">—</div><div class="m-sub">לא זמין</div></div>`;
@@ -476,11 +518,17 @@ function renderToday(d){
     <div class="m-sub">${windTier(windMax)}</div>
   </div>`;
 
+  const backBtn=!isToday?`<button class="day-back" data-back="1" aria-label="חזור להיום">→ חזור להיום</button>`:'';
+
   return `<div class="card">
     <div class="card-head">
-      <div class="spot-name">${spot.name}</div>
+      <div>
+        <div class="spot-name">${spot.name}</div>
+        <div class="cond">${dayLabel}${!isToday?` · ${wmoText(wd.weather_code?.[dayIdx]??1)}`:''}</div>
+      </div>
       <div class="suntimes"><span>🌅 <b>${sunrise}</b></span><span>🌇 <b>${sunset}</b></span></div>
     </div>
+    ${backBtn}
     <div class="grid4">
       ${waveBox}
       ${uvBox}
@@ -497,26 +545,28 @@ function renderWeek(d){
   let days='';
   for(let i=0;i<7;i++){
     const date=new Date(wd.time[i]);
-    const dn=i===0?'היום':i===1?'מחר':DAY_NAMES[date.getDay()];
+    const dn=i===0?'היום':i===1?'מחר':DAY_NAMES[date.getDay()]+'׳';
     const tMax=Math.round(wd.temperature_2m_max[i]),tMin=Math.round(wd.temperature_2m_min[i]);
     const uvMax=wd.uv_index_max[i];
-    const wMax=md?md.wave_height_max[i]:null;
-    const mainVal=wMax!=null
-      ?`<span class="${waveCls(wMax)}" style="color:var(--wv-color)">${wMax.toFixed(1)}מ׳</span>`
-      :`${tMax}°`;
-    days+=`<div class="day">
+    const wMax=md?md.wave_height_max?.[i]:null;
+    const code=wd.weather_code?.[i]??1;
+    const waveStr=wMax!=null?fmtWaveShort(wMax):null;
+    days+=`<button class="day day-btn" data-day="${i}" aria-label="פתח תחזית שעתית ל${dn}">
       <div class="day-name">${dn}</div>
-      <div class="day-main">${mainVal}</div>
-      <div class="day-sub">${tMax}° / ${tMin}°</div>
+      <div class="day-ico">${wmoIcon(code,true)}</div>
+      <div class="day-temp">${tMax}°<span class="day-temp-min">/${tMin}°</span></div>
+      ${waveStr?`<div class="day-wave ${waveCls(wMax)}" style="color:var(--wv-color)">🌊 ${waveStr}</div>`:'<div class="day-wave dim">—</div>'}
       <div class="day-uv ${uvCls(uvMax)}" style="color:var(--uv-color)">UV ${uvMax.toFixed(0)}</div>
-    </div>`;
+    </button>`;
   }
   return `<div class="card">
     <div class="card-head">
-      <div class="spot-name">${spot.name}</div>
-      <div class="suntimes">${md?'גובה גלים מקס׳ ליום':'טמפ׳ ליום'}</div>
+      <div>
+        <div class="spot-name">${spot.name}</div>
+        <div class="cond">לחץ על יום לתחזית שעתית</div>
+      </div>
     </div>
-    <div class="forecast" style="margin-top:0">${days}</div>
+    <div class="week-grid">${days}</div>
   </div>`;
 }
 
@@ -564,7 +614,25 @@ document.getElementById('tabs').addEventListener('click',e=>{
     const a=t===e.target;
     t.classList.toggle('active',a);t.setAttribute('aria-selected',a);
   });
+  if(e.target.dataset.view!=='today')selectedDay=0;
   renderFromCache();
+});
+
+document.getElementById('main').addEventListener('click',e=>{
+  const dayBtn=e.target.closest('.day-btn');
+  if(dayBtn){
+    selectedDay=parseInt(dayBtn.dataset.day,10)||0;
+    document.querySelectorAll('.tab').forEach(t=>{
+      const a=t.dataset.view==='today';
+      t.classList.toggle('active',a);t.setAttribute('aria-selected',a);
+    });
+    renderFromCache();
+    return;
+  }
+  if(e.target.closest('.day-back')){
+    selectedDay=0;
+    renderFromCache();
+  }
 });
 
 document.getElementById('refresh').addEventListener('click',e=>{
