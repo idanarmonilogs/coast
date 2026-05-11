@@ -423,10 +423,22 @@ const ALL_BEACHES=[
   {id:'eilat_almog',name:'אילת (אלמוג)',lat:29.4830,lon:34.9170,sea:'red',facing:200,region:'red'},
 ];
 const REGION_NAMES={north:'צפון',center:'מרכז',south:'דרום',red:'ים סוף'};
-const DEFAULT_SPOT_IDS=['nahsholim','telaviv','eilat'];
+const DEFAULT_SPOT_IDS=['nahsholim','sdotyam','telaviv','eilat'];
 
 function loadSelectedSpotIds(){
-  try{const s=JSON.parse(localStorage.getItem('beachSelectedIds'));if(Array.isArray(s)&&s.length)return s}catch{}
+  try{
+    const s=JSON.parse(localStorage.getItem('beachSelectedIds'));
+    if(Array.isArray(s)&&s.length){
+      // הגירה חד-פעמית — הוסף sdotyam אם לא קיים
+      if(!localStorage.getItem('migrated_sdotyam')&&!s.includes('sdotyam')){
+        const idx=s.indexOf('nahsholim');
+        if(idx>=0)s.splice(idx+1,0,'sdotyam');else s.unshift('sdotyam');
+        localStorage.setItem('beachSelectedIds',JSON.stringify(s));
+        localStorage.setItem('migrated_sdotyam','1');
+      }
+      return s;
+    }
+  }catch{}
   return DEFAULT_SPOT_IDS;
 }
 function saveSelectedSpotIds(ids){localStorage.setItem('beachSelectedIds',JSON.stringify(ids))}
