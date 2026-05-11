@@ -109,6 +109,64 @@ h1{font-size:22px;font-weight:700;letter-spacing:-.5px;display:flex;align-items:
 }
 .spot-btn:active{transform:scale(.96)}
 .spot-btn.active{background:var(--accent);color:#0a1421;border-color:var(--accent);font-weight:700}
+.spot-edit{
+  background:transparent;border:.5px dashed rgba(93,173,226,.5);
+  color:var(--accent)!important;font-weight:700;
+}
+.spot-edit:active{background:rgba(93,173,226,.1)}
+
+/* === Beach Manager Dialog === */
+.beach-mgr{
+  border:none;padding:0;border-radius:20px;
+  background:#0f1f33;color:var(--text);
+  width:min(440px,92vw);max-height:80vh;
+  font-family:inherit;direction:rtl;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+}
+.beach-mgr::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(8px)}
+.bm-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:18px 20px;border-bottom:.5px solid var(--border);
+  position:sticky;top:0;background:#0f1f33;z-index:1;
+}
+.bm-head h2{font-size:18px;font-weight:700;letter-spacing:-.3px}
+.bm-close{
+  background:var(--card);border:.5px solid var(--border);
+  color:var(--text);font-size:18px;width:34px;height:34px;
+  border-radius:50%;cursor:pointer;font-family:inherit;
+}
+.bm-body{padding:14px 16px;overflow-y:auto;max-height:calc(80vh - 130px)}
+.bm-section{margin-bottom:14px}
+.bm-region{
+  font-size:12px;color:var(--text-3);font-weight:700;
+  letter-spacing:.5px;text-transform:uppercase;
+  padding:6px 4px;margin-bottom:6px;
+}
+.bm-row{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 14px;margin-bottom:5px;
+  background:var(--card-2);border:.5px solid var(--border);
+  border-radius:11px;cursor:pointer;transition:all .15s;
+  min-height:44px;
+}
+.bm-row:hover{background:rgba(255,255,255,.09)}
+.bm-row.on{background:rgba(93,173,226,.15);border-color:rgba(93,173,226,.45)}
+.bm-row input{
+  width:20px;height:20px;cursor:pointer;accent-color:var(--accent);
+  flex-shrink:0;
+}
+.bm-name{font-size:14.5px;font-weight:600;color:var(--text)}
+.bm-foot{
+  padding:14px 16px;border-top:.5px solid var(--border);
+  position:sticky;bottom:0;background:#0f1f33;
+}
+.bm-save{
+  width:100%;padding:13px;
+  background:var(--accent);color:#0a1421;border:none;
+  border-radius:12px;font-size:15px;font-weight:700;
+  cursor:pointer;font-family:inherit;
+}
+.bm-save:active{transform:scale(.98)}
 
 .mode-toggle{
   display:flex;gap:0;margin:6px 14px 0;
@@ -333,18 +391,58 @@ main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
 
 <script>
 // facing = הכיוון אליו פתוח החוף (לים). offshore רוח מהכיוון ההפוך
-const SPOTS=[
-  {id:'nahsholim',name:'נחשולים',lat:32.6178,lon:34.9176,sea:'med',facing:270},
-  {id:'dor',name:'דור הבונים',lat:32.6310,lon:34.9134,sea:'med',facing:270},
-  {id:'telaviv',name:'תל אביב',lat:32.0853,lon:34.7656,sea:'med',facing:270},
-  {id:'eilat',name:'אילת',lat:29.5377,lon:34.9519,sea:'red',facing:200}
+const ALL_BEACHES=[
+  // צפון
+  {id:'akhziv',name:'אכזיב',lat:33.0473,lon:35.1024,sea:'med',facing:270,region:'north'},
+  {id:'nahariya',name:'נהריה',lat:33.0023,lon:35.0944,sea:'med',facing:270,region:'north'},
+  {id:'shavei',name:'שבי ציון',lat:32.9831,lon:35.0824,sea:'med',facing:270,region:'north'},
+  {id:'haifa',name:'בת גלים (חיפה)',lat:32.8369,lon:35.0007,sea:'med',facing:270,region:'north'},
+  {id:'dado',name:'דדו (חיפה)',lat:32.7733,lon:34.9647,sea:'med',facing:270,region:'north'},
+  {id:'maagan',name:'מעגן מיכאל',lat:32.5615,lon:34.9183,sea:'med',facing:270,region:'north'},
+  {id:'nahsholim',name:'נחשולים',lat:32.6178,lon:34.9176,sea:'med',facing:270,region:'north'},
+  {id:'caesarea',name:'קיסריה',lat:32.5042,lon:34.8929,sea:'med',facing:270,region:'north'},
+  {id:'mikhmoret',name:'מכמורת',lat:32.4124,lon:34.8694,sea:'med',facing:270,region:'north'},
+  {id:'beityanai',name:'בית ינאי',lat:32.3818,lon:34.8553,sea:'med',facing:270,region:'north'},
+  // מרכז
+  {id:'netanya',name:'נתניה',lat:32.3328,lon:34.8503,sea:'med',facing:270,region:'center'},
+  {id:'herzliya',name:'הרצליה',lat:32.1572,lon:34.7960,sea:'med',facing:270,region:'center'},
+  {id:'telaviv',name:'תל אביב (גורדון)',lat:32.0853,lon:34.7656,sea:'med',facing:270,region:'center'},
+  {id:'hilton',name:'תל אביב (הילטון)',lat:32.0903,lon:34.7693,sea:'med',facing:270,region:'center'},
+  {id:'batyam',name:'בת ים',lat:32.0167,lon:34.7440,sea:'med',facing:270,region:'center'},
+  {id:'rishon',name:'ראשון לציון',lat:31.9803,lon:34.7406,sea:'med',facing:270,region:'center'},
+  {id:'palmachim',name:'פלמחים',lat:31.9275,lon:34.6997,sea:'med',facing:270,region:'center'},
+  // דרום
+  {id:'ashdod',name:'אשדוד',lat:31.7972,lon:34.6322,sea:'med',facing:270,region:'south'},
+  {id:'nitzanim',name:'ניצנים',lat:31.7194,lon:34.5781,sea:'med',facing:270,region:'south'},
+  {id:'ashkelon',name:'אשקלון',lat:31.6688,lon:34.5495,sea:'med',facing:270,region:'south'},
+  {id:'zikim',name:'זיקים',lat:31.5985,lon:34.5414,sea:'med',facing:270,region:'south'},
+  // ים סוף
+  {id:'eilat',name:'אילת (מגדל הים)',lat:29.5377,lon:34.9519,sea:'red',facing:200,region:'red'},
+  {id:'eilat_coral',name:'אילת (קורל)',lat:29.5050,lon:34.9133,sea:'red',facing:200,region:'red'},
+  {id:'eilat_almog',name:'אילת (אלמוג)',lat:29.4830,lon:34.9170,sea:'red',facing:200,region:'red'},
 ];
+const REGION_NAMES={north:'צפון',center:'מרכז',south:'דרום',red:'ים סוף'};
+const DEFAULT_SPOT_IDS=['nahsholim','telaviv','eilat'];
+
+function loadSelectedSpotIds(){
+  try{const s=JSON.parse(localStorage.getItem('beachSelectedIds'));if(Array.isArray(s)&&s.length)return s}catch{}
+  return DEFAULT_SPOT_IDS;
+}
+function saveSelectedSpotIds(ids){localStorage.setItem('beachSelectedIds',JSON.stringify(ids))}
+let SPOTS=loadSelectedSpotIds().map(id=>ALL_BEACHES.find(b=>b.id===id)).filter(Boolean);
+if(!SPOTS.length)SPOTS=DEFAULT_SPOT_IDS.map(id=>ALL_BEACHES.find(b=>b.id===id));
 const CACHE_KEY='beachData_v7',CACHE_TTL=30*60*1000;
 const SPOT_KEY='beachSelectedSpot';
 const MODE_KEY='beachMode';
 let selectedSpot=localStorage.getItem(SPOT_KEY)||'nahsholim';
-let mode=localStorage.getItem(MODE_KEY)||'swim'; // 'surf' או 'swim'
+let mode=localStorage.getItem(MODE_KEY)||'swim'; // 'swim'/'sup'/'surf'
 let selectedDay=0; // index 0..6 (היום=0)
+
+// וודא שהספוט הנבחר קיים ברשימה הנוכחית
+if(!SPOTS.find(s=>s.id===selectedSpot)){
+  selectedSpot=SPOTS[0]?.id||'nahsholim';
+  localStorage.setItem(SPOT_KEY,selectedSpot);
+}
 const DIRS=['צ','צ-מז','מז','ד-מז','ד','ד-מע','מע','צ-מע'];
 const DAY_NAMES=['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
 
@@ -808,10 +906,61 @@ function buildSpotPicker(){
   const el=document.getElementById('spotPicker');
   el.setAttribute('role','tablist');
   el.setAttribute('aria-label','בחירת חוף');
-  el.innerHTML=SPOTS.map(s=>{
+  const items=SPOTS.map(s=>{
     const act=s.id===selectedSpot;
     return `<button class="spot-btn${act?' active':''}" data-spot="${s.id}" role="tab" aria-selected="${act}" aria-label="חוף ${s.name}">${s.name}</button>`;
   }).join('');
+  el.innerHTML=items+`<button class="spot-btn spot-edit" id="editBeaches" aria-label="הוסף או הסר חופים">＋ חופים</button>`;
+}
+
+function openBeachManager(){
+  let dlg=document.getElementById('beachManager');
+  if(dlg){dlg.showModal();return}
+  dlg=document.createElement('dialog');
+  dlg.id='beachManager';
+  dlg.className='beach-mgr';
+  const selected=new Set(SPOTS.map(s=>s.id));
+  const groups={};
+  for(const b of ALL_BEACHES){(groups[b.region]=groups[b.region]||[]).push(b)}
+  const body=Object.keys(groups).map(r=>`
+    <div class="bm-section">
+      <div class="bm-region">${REGION_NAMES[r]}</div>
+      ${groups[r].map(b=>`
+        <label class="bm-row${selected.has(b.id)?' on':''}">
+          <input type="checkbox" data-bid="${b.id}" ${selected.has(b.id)?'checked':''}>
+          <span class="bm-name">${b.name}</span>
+        </label>
+      `).join('')}
+    </div>
+  `).join('');
+  dlg.innerHTML=`
+    <div class="bm-head">
+      <h2>חופים</h2>
+      <button class="bm-close" aria-label="סגור">✕</button>
+    </div>
+    <div class="bm-body">${body}</div>
+    <div class="bm-foot">
+      <button class="bm-save">שמור</button>
+    </div>`;
+  document.body.appendChild(dlg);
+  dlg.showModal();
+  dlg.addEventListener('click',e=>{
+    if(e.target===dlg||e.target.classList.contains('bm-close'))dlg.close();
+    if(e.target.classList.contains('bm-save')){
+      const ids=[...dlg.querySelectorAll('input:checked')].map(i=>i.dataset.bid);
+      if(!ids.length){alert('בחר לפחות חוף אחד');return}
+      saveSelectedSpotIds(ids);
+      SPOTS=ids.map(id=>ALL_BEACHES.find(b=>b.id===id)).filter(Boolean);
+      if(!SPOTS.find(s=>s.id===selectedSpot)){selectedSpot=SPOTS[0].id;localStorage.setItem(SPOT_KEY,selectedSpot)}
+      buildSpotPicker();
+      dlg.close();
+      loadAll(true);
+    }
+  });
+  dlg.addEventListener('change',e=>{
+    const row=e.target.closest('.bm-row');
+    if(row)row.classList.toggle('on',e.target.checked);
+  });
 }
 
 function renderFromCache(){
@@ -836,6 +985,7 @@ document.querySelectorAll('.mode-btn').forEach(b=>{
 
 document.getElementById('spotPicker').addEventListener('click',e=>{
   const btn=e.target.closest('.spot-btn');if(!btn)return;
+  if(btn.id==='editBeaches'){openBeachManager();return}
   selectedSpot=btn.dataset.spot;
   localStorage.setItem(SPOT_KEY,selectedSpot);
   document.querySelectorAll('.spot-btn').forEach(b=>{
