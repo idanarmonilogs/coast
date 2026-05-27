@@ -320,35 +320,39 @@ main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
   display:flex;gap:0;overflow-x:auto;scrollbar-width:none;
   margin-top:14px;padding:0;background:var(--card-2);
   border:.5px solid var(--border);border-radius:16px;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
 }
 .hourly::-webkit-scrollbar{display:none}
 .hr{
-  flex:0 0 auto;min-width:78px;
-  padding:12px 8px;text-align:center;
-  display:flex;flex-direction:column;align-items:center;gap:5px;
+  flex:0 0 auto;min-width:120px;
+  padding:16px 12px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
   border-left:.5px solid var(--border);
   position:relative;
+  scroll-snap-align:start;
 }
 .hr:last-child{border-left:none}
-.hr.now{background:rgba(93,173,226,.08)}
-.hr-time{font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.3px}
-.hr.now .hr-time{color:var(--accent)}
-.hr-icon{font-size:20px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
-.hr-temprow{display:flex;align-items:baseline;gap:5px;line-height:1}
-.hr-temp{font-size:18px;font-weight:700;letter-spacing:-.4px}
+.hr.now{background:rgba(93,173,226,.14);border-left:2px solid var(--accent)}
+.hr-time{font-size:13px;color:var(--text-3);font-weight:600;letter-spacing:.3px}
+.hr.now .hr-time{color:var(--accent);font-size:14px;font-weight:700}
+.hr-icon{font-size:26px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+.hr.now .hr-icon{font-size:32px}
+.hr-temprow{display:flex;align-items:baseline;gap:6px;line-height:1}
+.hr-temp{font-size:22px;font-weight:700;letter-spacing:-.4px}
+.hr.now .hr-temp{font-size:26px}
 .hr-uv{
-  font-size:10px;font-weight:700;color:var(--uv-color);
-  padding:1px 5px;border-radius:5px;background:rgba(0,0,0,.3);
+  font-size:11.5px;font-weight:700;color:var(--uv-color);
+  padding:2px 6px;border-radius:5px;background:rgba(0,0,0,.3);
 }
-.hr-wave{font-size:11px;color:var(--wv-color,var(--text-2));font-weight:600;line-height:1.1}
+.hr-wave{font-size:13px;color:var(--wv-color,var(--text-2));font-weight:600;line-height:1.1}
 .hr-wave.dim{color:var(--text-3);opacity:.5}
 .hr-pop{
-  font-size:10px;color:#7fc3ff;font-weight:600;line-height:1;
-  display:flex;align-items:center;gap:2px;min-height:11px;
+  font-size:11.5px;color:#7fc3ff;font-weight:600;line-height:1;
+  display:flex;align-items:center;gap:2px;min-height:12px;
 }
 .hr-pop.dim{opacity:0}
 .hr-wind{
-  font-size:10.5px;font-weight:600;line-height:1.15;
+  font-size:12px;font-weight:600;line-height:1.15;
   color:var(--wn-color,var(--text-2));
   display:flex;align-items:center;gap:3px;
 }
@@ -399,7 +403,6 @@ main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
 </div>
 
 <nav class="tabs" id="tabs" role="tablist">
-  <button class="tab" data-view="now" role="tab" aria-selected="false">עכשיו</button>
   <button class="tab active" data-view="today" role="tab" aria-selected="true">היום</button>
   <button class="tab" data-view="week" role="tab" aria-selected="false">7 ימים</button>
 </nav>
@@ -1057,42 +1060,6 @@ function surfHero(d,i){
   </div>`;
 }
 
-function renderNow(d){
-  const{spot,weather,marine}=d;
-  const wh=weather.hourly,wd=weather.daily;
-  const i=nowIdx(wh.time);
-  const mh=marine?.hourly;
-  const uv=wh.uv_index[i];
-  const insights=uvInsights(wh.uv_index,wh.time,i);
-  const temp=Math.round(wh.temperature_2m[i]);
-  const wind=Math.round(wh.wind_speed_10m[i]);
-  const gust=Math.round(wh.wind_gusts_10m[i]);
-  const wdir=wh.wind_direction_10m[i];
-  const sst=mh?.sea_surface_temperature?.[i];
-  const code=wh.weather_code?.[i]??1;
-  const hr=parseInt(wh.time[i].slice(11,13),10);
-  const sunrise=fmtT(wd.sunrise[0]),sunset=fmtT(wd.sunset[0]);
-
-  const showSurf=mode==='surf';
-  return `<div class="card">
-    <div class="card-head">
-      <div>
-        <div class="spot-name">${spotName(spot)}</div>
-        <div class="cond"><span>${wmoIcon(code,isDayHour(hr))}</span><span>${wmoText(code)} · ${temp}° ${t('airSuffix')}</span></div>
-      </div>
-      <div class="suntimes"><span>${t('metric.sunrise')} <b>${sunrise}</b></span><span>${t('metric.sunset')} <b>${sunset}</b></span></div>
-    </div>
-    ${surfHero(d,i)}
-    ${renderInsights(d,0)}
-    <div class="grid4">
-      ${waveMetric(mh,i,showSurf)}
-      ${waterMetric(sst)}
-      ${windMetric(wind,gust,wdir,showSurf)}
-      ${uvMetric(uv,insights)}
-    </div>
-  </div>`;
-}
-
 function renderToday(d){
   const{spot,weather,marine}=d;
   const wh=weather.hourly,wd=weather.daily,md=marine?.daily;
@@ -1180,6 +1147,7 @@ function renderToday(d){
       <div class="suntimes"><span>${t('metric.sunrise')} <b>${sunrise}</b></span><span>${t('metric.sunset')} <b>${sunset}</b></span></div>
     </div>
     ${backBtn}
+    ${isToday?surfHero(d,i):''}
     ${renderInsights(d,dayIdx)}
     <div class="grid4">
       ${waveBox}
@@ -1239,7 +1207,7 @@ const spotName=s=>s[lang==='en'?'name_en':'name']||s.name;
 
 function render(data,ts,note){
   const view=document.querySelector('.tab.active').dataset.view;
-  const fn=view==='now'?renderNow:view==='today'?renderToday:renderWeek;
+  const fn=view==='week'?renderWeek:renderToday;
   const d=data.find(x=>x.spot.id===selectedSpot)||data[0];
   document.getElementById('main').innerHTML=fn(d);
   updateTodayTabLabel(data);
@@ -1335,9 +1303,8 @@ function applyLang(){
   document.getElementById('refresh').setAttribute('aria-label',t('refresh'));
   // Tabs
   const tabs=document.querySelectorAll('.tab');
-  if(tabs[0])tabs[0].textContent=t('now');
-  if(tabs[1])tabs[1].textContent=t('today');
-  if(tabs[2])tabs[2].textContent=t('week');
+  if(tabs[0])tabs[0].textContent=t('today');
+  if(tabs[1])tabs[1].textContent=t('week');
   document.getElementById('tabs').setAttribute('aria-label',t('tabRange'));
   // Mode toggle
   document.querySelector('.mode-toggle').setAttribute('aria-label',t('modePicker'));
