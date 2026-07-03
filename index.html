@@ -44,14 +44,14 @@
 .surf-top{display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;z-index:1}
 .surf-score-wrap{display:flex;align-items:baseline;gap:10px}
 .surf-num{
-  font-size:48px;font-weight:800;line-height:.95;letter-spacing:-2px;
+  font-size:58px;font-weight:800;line-height:.95;letter-spacing:-2px;
   color:var(--sc-color);
   text-shadow:0 0 22px color-mix(in srgb,var(--sc-color) 45%,transparent);
 }
-.surf-num-max{font-size:18px;font-weight:600;color:var(--text-3)}
-.surf-meta{display:flex;flex-direction:column;gap:2px}
-.surf-cap{font-size:10.5px;color:var(--text-3);font-weight:600;letter-spacing:.5px;text-transform:uppercase}
-.surf-label{font-size:18px;font-weight:700;color:var(--sc-color);line-height:1}
+.surf-num-max{font-size:19px;font-weight:600;color:var(--text-3)}
+.surf-meta{display:flex;flex-direction:column;gap:3px}
+.surf-cap{font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.surf-label{font-size:21px;font-weight:800;color:var(--sc-color);line-height:1}
 
 .surf-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;position:relative;z-index:1}
 .s-chip{
@@ -82,7 +82,7 @@
 .ins.lv-cold{border-color:rgba(125,211,252,.3);background:rgba(125,211,252,.07)}
 .ins-i{font-size:18px;text-align:center;line-height:1}
 .ins-k{font-size:11px;color:var(--text-3);font-weight:600;letter-spacing:.3px;text-transform:uppercase;line-height:1.1}
-.ins-v{font-size:14px;font-weight:600;color:var(--text);line-height:1.25;margin-top:2px}
+.ins-v{font-size:15px;font-weight:700;color:var(--text);line-height:1.25;margin-top:2px}
 .ins-text{display:flex;flex-direction:column}
 *:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -264,7 +264,7 @@ main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
 }
 .m-head svg{width:15px;height:15px;flex-shrink:0;opacity:.85}
 .m-val{
-  font-size:32px;font-weight:700;letter-spacing:-.6px;line-height:1;
+  font-size:34px;font-weight:800;letter-spacing:-.8px;line-height:1;
   display:flex;align-items:baseline;gap:4px;position:relative;
   color:var(--m-color,var(--text));
 }
@@ -283,7 +283,7 @@ main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
 .week-grid{display:flex;flex-direction:column;gap:8px;margin-top:8px}
 .day-btn{
   width:100%;display:grid;
-  grid-template-columns:74px 38px 1fr auto auto;align-items:center;gap:10px;
+  grid-template-columns:64px 34px 1fr auto 52px;align-items:center;gap:10px;
   padding:14px;
   background:var(--card-2);border:.5px solid var(--border);
   border-radius:14px;color:var(--text);font-family:inherit;
@@ -300,9 +300,14 @@ main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
 .day-ico{font-size:24px;text-align:center;line-height:1}
 .day-temp{font-size:17px;font-weight:700;letter-spacing:-.3px}
 .day-temp-min{font-size:13px;font-weight:600;color:var(--text-2);margin-right:3px}
-.day-wave{font-size:12.5px;font-weight:600;white-space:nowrap}
+.day-wave{font-size:13.5px;font-weight:700;white-space:nowrap}
 .day-wave.dim{color:var(--text-3);opacity:.5}
-.day-uv{font-size:11px;font-weight:700;padding:3px 8px;border-radius:7px;background:rgba(0,0,0,.3);white-space:nowrap}
+.day-score{
+  font-size:16px;font-weight:800;letter-spacing:-.3px;
+  color:var(--sc-color);text-align:center;
+  padding:6px 0;border-radius:9px;background:rgba(0,0,0,.3);
+  white-space:nowrap;
+}
 
 .day-back{
   display:inline-flex;align-items:center;gap:4px;
@@ -324,8 +329,8 @@ main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
 }
 .hourly::-webkit-scrollbar{display:none}
 .hr{
-  flex:0 0 auto;min-width:120px;
-  padding:16px 12px;text-align:center;
+  flex:0 0 auto;min-width:104px;
+  padding:14px 10px;text-align:center;
   display:flex;flex-direction:column;align-items:center;gap:8px;
   border-left:.5px solid var(--border);
   position:relative;
@@ -334,28 +339,27 @@ main{padding:8px 14px 80px;display:flex;flex-direction:column;gap:14px}
 .hr:last-child{border-left:none}
 .hr.now{background:rgba(93,173,226,.14);border-left:2px solid var(--accent)}
 .hr-time{font-size:13px;color:var(--text-3);font-weight:600;letter-spacing:.3px}
-.hr.now .hr-time{color:var(--accent);font-size:14px;font-weight:700}
-.hr-icon{font-size:26px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
-.hr.now .hr-icon{font-size:32px}
-.hr-temprow{display:flex;align-items:baseline;gap:6px;line-height:1}
-.hr-temp{font-size:22px;font-weight:700;letter-spacing:-.4px}
-.hr.now .hr-temp{font-size:26px}
-.hr-uv{
-  font-size:11.5px;font-weight:700;color:var(--uv-color);
-  padding:2px 6px;border-radius:5px;background:rgba(0,0,0,.3);
+.hr.now .hr-time{color:var(--accent);font-weight:700}
+.hr-wave{
+  font-size:19px;font-weight:800;letter-spacing:-.3px;line-height:1;
+  color:var(--wv-color,var(--text-2));
 }
-.hr-wave{font-size:13px;color:var(--wv-color,var(--text-2));font-weight:600;line-height:1.1}
-.hr-wave.dim{color:var(--text-3);opacity:.5}
-.hr-pop{
-  font-size:11.5px;color:#7fc3ff;font-weight:600;line-height:1;
-  display:flex;align-items:center;gap:2px;min-height:12px;
-}
-.hr-pop.dim{opacity:0}
+.hr.now .hr-wave{font-size:22px}
+.hr-wave.dim{color:var(--text-3);opacity:.5;font-weight:600}
 .hr-wind{
-  font-size:12px;font-weight:600;line-height:1.15;
+  font-size:13px;font-weight:700;line-height:1;
   color:var(--wn-color,var(--text-2));
-  display:flex;align-items:center;gap:3px;
+  display:flex;align-items:center;justify-content:center;gap:3px;
 }
+.hr-temprow{display:flex;align-items:center;gap:5px;line-height:1}
+.hr-icon{font-size:18px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+.hr-temp{font-size:15px;font-weight:600;color:var(--text-2)}
+.hr-meta{display:flex;align-items:center;gap:4px;min-height:17px}
+.hr-uv{
+  font-size:11px;font-weight:700;color:var(--uv-color);
+  padding:2px 6px;border-radius:5px;background:rgba(0,0,0,.3);line-height:1.2;
+}
+.hr-pop{font-size:11px;color:#7fc3ff;font-weight:600;line-height:1}
 
 .loading,.error{text-align:center;padding:50px 20px;color:var(--text-3);font-size:14px}
 .error{color:#ff9180}
@@ -608,7 +612,6 @@ const fmtWave=h=>h<1?`${Math.round(h*100)} ${t('units.cm')}`:`${h.toFixed(1)} ${
 const fmtWaveShort=h=>h<1?`${Math.round(h*100)}${t('units.cm')}`:`${h.toFixed(1)}${t('units.m')}`;
 const windTier=s=>{const arr=t('windTiers');return s<10?arr[0]:s<20?arr[1]:s<30?arr[2]:s<40?arr[3]:arr[4]};
 const windCls=s=>s<10?'wn-l':s<20?'wn-m':s<30?'wn-h':s<40?'wn-v':'wn-x';
-const windIcon=s=>s<10?'🍃':s<20?'💨':s<30?'🌬️':s<40?'🌪️':'⚠️';
 const dirArrowSm=d=>`<span style="display:inline-block;color:var(--wn-color,var(--accent));transform:rotate(${(d+180)%360}deg);font-size:11px;line-height:1">↑</span>`;
 
 // סוג הרוח לעומת כיוון הספוט
@@ -951,57 +954,6 @@ async function loadAll(force=false){
   }
 }
 
-function waveMetric(mh,i,showSurf){
-  const u=t('units');
-  if(mh&&mh.wave_height?.[i]!=null){
-    const wave=mh.wave_height[i],per=mh.wave_period?.[i],wdrM=mh.wave_direction?.[i];
-    const val=wave<1?Math.round(wave*100):wave.toFixed(1);
-    const unit=wave<1?u.cm:u.m;
-    const head=showSurf&&wdrM!=null?`${t('metric.waves')} ${dirArrow(wdrM)} ${dirText(wdrM)}`:t('metric.waves');
-    const sub=showSurf&&per?`${waveTier(wave)} · ${per.toFixed(0)}${u.sec}`:waveTier(wave);
-    return `<div class="metric wave ${waveCls(wave)}">
-      <div class="m-head"><svg><use href="#i-wave"/></svg>${head}</div>
-      <div class="m-val">${val}<span class="m-unit">${unit}</span></div>
-      <div class="m-sub">${sub}</div>
-    </div>`;
-  }
-  return `<div class="metric"><div class="m-head"><svg><use href="#i-wave"/></svg>${t('metric.waves')}</div><div class="m-val">—</div></div>`;
-}
-
-function uvMetric(uv,insights){
-  const cls=uvCls(uv);
-  const bm=burnMin(uv);
-  const sub=insights&&insights.peakVal>uv+0.4
-    ?`${uvTier(uv)} · ${t('peak')} ${insights.peakTime}`
-    :bm&&uv>=3?`${uvTier(uv)} · ${t('burnMin')} ${bm} ${t('burnSuffix')}`
-    :uvTier(uv);
-  return `<div class="metric uv ${cls}">
-    <div class="m-head"><svg><use href="#i-sun"/></svg>${t('metric.uv')}</div>
-    <div class="m-val">${uv.toFixed(1)}<span class="m-unit">${uvIcon(uv)}</span></div>
-    <div class="m-sub">${sub}</div>
-  </div>`;
-}
-
-function waterMetric(sst){
-  if(sst==null)return `<div class="metric"><div class="m-head"><svg><use href="#i-water"/></svg>${t('metric.water')}</div><div class="m-val">—</div></div>`;
-  const tiers=t('waterTiers');
-  const tier=sst>=25?tiers[0]:sst>=22?tiers[1]:sst>=19?tiers[2]:sst>=16?tiers[3]:tiers[4];
-  return `<div class="metric" style="--m-color:#5dade2">
-    <div class="m-head"><svg><use href="#i-water"/></svg>${t('metric.water')}</div>
-    <div class="m-val">${sst.toFixed(1)}<span class="m-unit">°</span></div>
-    <div class="m-sub">${tier}</div>
-  </div>`;
-}
-
-function windMetric(wind,gust,wdir,showSurf){
-  const head=showSurf?`${t('metric.wind')} ${dirArrow(wdir)} ${dirText(wdir)}`:t('metric.wind');
-  return `<div class="metric ${windCls(wind)}" style="--m-color:var(--wn-color)">
-    <div class="m-head"><svg><use href="#i-wind"/></svg>${head}</div>
-    <div class="m-val">${wind}<span class="m-unit">${t('units.kmh')}</span></div>
-    <div class="m-sub">${windTier(wind)} · ${t('metric.gusts')} ${gust}</div>
-  </div>`;
-}
-
 function wmoText(c){
   const w=t('wmoTexts');
   if(c===0)return w[0];
@@ -1087,16 +1039,18 @@ function renderToday(d){
     const wSpd=Math.round(wh.wind_speed_10m[idx]);
     const wDir=wh.wind_direction_10m[idx];
     const isNow=hh===nowH;
-    hours+=`<div class="hr${isNow?' now':''} ${windCls(wSpd)}">
-      <div class="hr-time">${isNow?'עכשיו':String(hh).padStart(2,'0')}</div>
-      <div class="hr-icon">${wmoIcon(code,isDayHour(hh))}</div>
+    hours+=`<div class="hr${isNow?' now':''}">
+      <div class="hr-time">${isNow?t('now'):String(hh).padStart(2,'0')+':00'}</div>
+      <div class="hr-wave${wave==null?' dim':' '+waveCls(wave)}">${wave!=null?fmtWaveShort(wave):'—'}</div>
+      <div class="hr-wind ${windCls(wSpd)}">${dirArrowSm(wDir)} ${wSpd}</div>
       <div class="hr-temprow">
+        <span class="hr-icon">${wmoIcon(code,isDayHour(hh))}</span>
         <span class="hr-temp">${Math.round(wh.temperature_2m[idx])}°</span>
-        ${uvH>=1?`<span class="hr-uv ${uvCls(uvH)}">UV ${uvH.toFixed(0)}</span>`:''}
       </div>
-      <div class="hr-wave${wave==null?' dim':' '+waveCls(wave)}">${wave!=null?`🌊 ${fmtWaveShort(wave)}`:'—'}</div>
-      <div class="hr-wind">${windIcon(wSpd)} ${dirArrowSm(wDir)} ${dirText(wDir)} ${wSpd}</div>
-      <div class="hr-pop${pop<10?' dim':''}">💧${pop}%</div>
+      <div class="hr-meta">
+        ${uvH>=3?`<span class="hr-uv ${uvCls(uvH)}">UV ${Math.round(uvH)}</span>`:''}
+        ${pop>=10?`<span class="hr-pop">💧${pop}%</span>`:''}
+      </div>
     </div>`;
   }
 
@@ -1117,7 +1071,7 @@ function renderToday(d){
 
   const uvBox=`<div class="metric uv ${uvCls(uvMax)}">
     <div class="m-head"><svg><use href="#i-sun"/></svg>${t('metric.uvMax')}</div>
-    <div class="m-val">${uvMax.toFixed(1)}<span class="m-unit">${uvIcon(uvMax)}</span></div>
+    <div class="m-val">${Math.round(uvMax)}<span class="m-unit">${uvIcon(uvMax)}</span></div>
     <div class="m-sub">${uvTier(uvMax)}${insights?.peakTime?` · ${t('peak')} ${insights.peakTime}`:''}</div>
   </div>`;
 
@@ -1168,10 +1122,11 @@ function renderWeek(d){
     const dn=i===0?t('today'):i===1?t('tomorrow'):DAY_NAMES()[date.getDay()];
     const dStr=`${date.getDate()}/${date.getMonth()+1}`;
     const tMax=Math.round(wd.temperature_2m_max[i]),tMin=Math.round(wd.temperature_2m_min[i]);
-    const uvMax=wd.uv_index_max[i];
     const wMax=md?md.wave_height_max?.[i]:null;
     const code=wd.weather_code?.[i]??1;
     const waveStr=wMax!=null?fmtWaveShort(wMax):null;
+    const win=bestWindow(d,i,mode);
+    const sc=win?win.score:null;
     days+=`<button class="day-btn" data-day="${i}" aria-label="${dn} ${dStr}">
       <div class="day-namebox">
         <span class="day-name">${dn}</span>
@@ -1180,14 +1135,14 @@ function renderWeek(d){
       <div class="day-ico">${wmoIcon(code,true)}</div>
       <div class="day-temp">${tMax}°<span class="day-temp-min">/${tMin}°</span></div>
       ${waveStr?`<div class="day-wave ${waveCls(wMax)}" style="color:var(--wv-color)">🌊 ${waveStr}</div>`:'<div class="day-wave dim">—</div>'}
-      <div class="day-uv ${uvCls(uvMax)}" style="color:var(--uv-color)">UV ${uvMax.toFixed(0)}</div>
+      ${sc!=null?`<div class="day-score ${scoreCls(sc)}">${sc.toFixed(1)}</div>`:'<div class="day-score">—</div>'}
     </button>`;
   }
   return `<div class="card">
     <div class="card-head">
       <div>
         <div class="spot-name">${spotName(spot)}</div>
-        <div class="cond">${t('pressGuide')}</div>
+        <div class="cond">${t('score.'+mode)} · ${t('pressGuide')}</div>
       </div>
     </div>
     <div class="week-grid">${days}</div>
